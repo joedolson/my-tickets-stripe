@@ -197,7 +197,8 @@ function mt_stripe_messages( $message, $code ) {
 
 			return sprintf( __( 'Thank you for your purchase! Your Stripe transaction id is <code>#%1$s</code>. <a href="%2$s">View your receipt</a>', 'my-tickets-stripe' ), $transaction_id, $receipt );
 		} else {
-			return sprintf( __( "Sorry, an error occurred: %s", 'my-tickets-stripe' ), "<strong>" . sanitize_text_field( $_GET['response_reason_text'] ) . "</strong>" );
+			$reason = isset( $_GET['reason'] ) ? urldecode( $_GET['reason'] ) : __( 'Unknown failure.', 'my-tickets-stripe' );
+			return sprintf( __( "Sorry, an error occurred: %s", 'my-tickets-stripe' ), "<strong>" . sanitize_text_field( $reason ) . "</strong>" );
 		}
 	}
 
@@ -420,14 +421,15 @@ function my_tickets_stripe_process_payment() {
  
 		} catch ( Exception $e ) {
 
-			$failure_message = $charge->failure_message;
+			$body = $e->jsonBody;
+			$message = $body['error']['message'];
 			$payment_status = 'Failed';
 			// redirect on failed payment
 			$redirect = mt_replace_http( esc_url_raw( add_query_arg( array(
 					'response_code' => 'failed',
 					'gateway'       => 'stripe',
 					'payment'       => $payment_id,
-					'reason'        => $failure_message
+					'reason'        => urlencode( $message )
 				), $purchase_page ) ) );
 		}
 
