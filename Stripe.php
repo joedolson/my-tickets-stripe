@@ -24,8 +24,7 @@ Version: 1.0.0
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 global $mt_stripe_version;
-$ = '1.0.0';
-mt_stripe_version
+$mt_stripe_version = '1.0.0';
 load_plugin_textdomain( 'my-tickets-stripe', false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
 
 // requires My Tickets version 1.3.6
@@ -321,28 +320,11 @@ function mt_stripe_form( $url, $payment_id, $total, $args ) {
 	<input type='hidden' name='payment_id' value='" . esc_attr( $payment_id ) . "' />
 	<input type='hidden' name='amount' value='$total' />";
 	$form .= mt_render_field( 'address', 'stripe' );
-	$form .= "<input type='submit' name='submit' id='mt-stripe-submit' class='button' value='" . esc_attr( apply_filters( 'mt_gateway_button_text', __( 'Pay Now', 'my-tickets' ), 'stripe' ) ) . "' />";
+	$form .= "<input type='submit' name='stripe_submit' id='mt-stripe-submit' class='button' value='" . esc_attr( apply_filters( 'mt_gateway_button_text', __( 'Pay Now', 'my-tickets' ), 'stripe' ) ) . "' />";
 	$form .= apply_filters( 'mt_stripe_form', '', 'stripe', $args );
 	$form .= "</form>";
 	
 	return $form;
-}
-
-/**
- * Insert license key field onto license keys page.
- *
- * @param $fields string Existing fields.
- * @return string
- */
-add_action( 'mt_license_fields', 'mt_stripe_license_field' );
-function mt_stripe_license_field( $fields ) {
-	$field = 'mt_stripe_license_key';
-	$name =  __( 'My Tickets: Stripe', 'my-tickets-stripe' );
-	return $fields . "
-	<p class='license'>
-		<label for='$field'>$name</label><br/>
-		<input type='text' name='$field' id='$field' size='60' value='".esc_attr( trim( get_option( $field ) ) )."' />
-	</p>";
 }
 
 add_action( 'wp_enqueue_scripts', 'mt_stripe_enqueue_scripts' );
