@@ -197,7 +197,7 @@ function mt_stripe_messages( $message, $code ) {
 
 			return sprintf( __( 'Thank you for your purchase! Your Stripe transaction id is <code>#%1$s</code>. <a href="%2$s">View your receipt</a>', 'my-tickets-stripe' ), $transaction_id, $receipt );
 		} else {
-			$reason = isset( $_GET['reason'] ) ? urldecode( $_GET['reason'] ) : __( 'Unknown failure.', 'my-tickets-stripe' );
+			$reason = isset( $_GET['reason'] ) ? stripslashes( urldecode( $_GET['reason'] ) ) : __( 'Unknown failure.', 'my-tickets-stripe' );
 			return sprintf( __( "Sorry, an error occurred: %s", 'my-tickets-stripe' ), "<strong>" . sanitize_text_field( $reason ) . "</strong>" );
 		}
 	}
