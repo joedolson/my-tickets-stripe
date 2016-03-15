@@ -1,0 +1,23 @@
+.payment-errors.active {
+	padding: .5em;
+	margin: .5em 0;
+	background: #ffd;
+	border: 1px solid #900;
+	display: block;
+}
+
+.payment-errors {
+	display: none;
+}
+
+.mt-payment-form #my-tickets-stripe-payment-form select.card-expiry-month, 
+.mt-payment-form #my-tickets-stripe-payment-form select.card-expiry-year {
+	width: 6em;
+}
+.mt-payment-form #my-tickets-stripe-payment-form input.card-cvc {
+	width: 4em;
+}
+
+.mt-payment-form .section > fieldset {
+	padding: 1em 0;
+}
