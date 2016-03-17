@@ -125,6 +125,46 @@ function mt_stripe_ipn() {
 	return;
 }
 
+function mt_stripe_supported() {
+	return array(
+		'AED', 'ALL', 'ANG', 'AUD', 'AWG', 'BBD', 'BDT', 'BIF', 'BMD', 'BND', 'BOB', 'BRL', 'BSD',
+		'BWP', 'BZD', 'CAD', 'CHF', 'CLP', 'CNY', 'COP', 'CRC', 'CVE', 'CZK', 'DJF', 'DKK', 'DOP',
+		'DZD', 'EGP', 'ETB', 'EUR', 'FJD', 'FKP', 'GBP', 'GIP', 'GMD', 'GNF', 'GTQ', 'GYD', 'HKD',
+		'HNL', 'HRK', 'HTG', 'HUF', 'IDR', 'ILS', 'INR', 'ISK', 'JMD', 'JPY', 'KES', 'KHR', 'KMF',
+		'KRW', 'KYD', 'KZT', 'LAK', 'LBP', 'LKR', 'LRD', 'MAD', 'MDL', 'MNT', 'MOP', 'MRO', 'MUR',
+		'MVR', 'MWK', 'MXN', 'MYR', 'NAD', 'NGN', 'NIO', 'NOK', 'NPR', 'NZD', 'PAB', 'PEN', 'PGK',
+		'PHP', 'PKR', 'PLN', 'PYG', 'QAR', 'RUB', 'SAR', 'SBD', 'SCR', 'SEK', 'SGD', 'SHP', 'SLL',
+		'SOS', 'STD', 'SVC', 'SZL', 'THB', 'TOP', 'TTD', 'TWD', 'TZS', 'UAH', 'UGX', 'USD', 'UYU',
+		'UZS', 'VND', 'VUV', 'WST', 'XAF', 'XOF', 'YER', 'ZAR'
+	);
+}
+
+/**
+ * If this gateway is active, limit currencies to supported currencies.
+ */
+add_filter( 'mt_currencies', 'mt_stripe_currencies', 10, 1 );
+function mt_stripe_currencies( $currencies ) {
+	$options  = ( ! is_array( get_option( 'mt_settings' ) ) ) ? array() : get_option( 'mt_settings' );
+	$defaults = mt_default_settings();
+	$options  = array_merge( $defaults, $options );
+	$mt_gateways = $options['mt_gateway'];
+		
+	if ( is_array( $mt_gateways ) && in_array( 'authorizenet', $mt_gateways ) ) {
+		$stripe = mt_stripe_supported();
+		$return = array();
+		foreach( $stripe as $currency ) {
+			$keys = array_keys( $currencies );
+			if ( in_array( $currency, $keys ) ) {
+				$return[$currency] = $currencies[$currency];
+			}
+		}
+		
+		return $return;	
+	}
+	
+	return $currencies;
+}
+
 add_filter( 'mt_setup_gateways', 'mt_setup_stripe', 10, 1 );
 function mt_setup_stripe( $gateways ) {
 	// this key is how the gateway will be referenced in all contexts.
