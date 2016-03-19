@@ -27,8 +27,19 @@ global $mt_stripe_version;
 $mt_stripe_version = '1.0.0';
 load_plugin_textdomain( 'my-tickets-stripe', false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
 
-// requires My Tickets version 1.3.6
-
+// requires My Tickets version 1.4.0
+add_action( 'admin_notices', 'mt_stripe_mt_version' );
+function mt_stripe_mt_version() {
+	if ( !function_exists( 'mt_get_current_version' ) ) {
+		// function mt_get_current_version added in My Tickets 1.4.0
+		$message = sprintf( __( "My Tickets: Stripe requires at least <strong>My Tickets 1.4.0</strong>. Please update My Tickets!", 'my-tickets-stripe' ) );
+		if ( ! current_user_can( 'manage_options' ) ) { 
+			return; 
+		} else { 
+			echo "<div class='error'><p>$message</p></div>";
+		}
+	}
+}
 
 // The URL of the site with EDD installed
 define( 'EDD_MT_STRIPE_STORE_URL', 'https://www.joedolson.com' ); 
@@ -531,11 +542,4 @@ if ( get_option( 'mt_stripe_license_key_valid' ) == 'active' ) {
 } else {
 	$message = sprintf( __( "Please <a href='%s'>enter your My Tickets: Stripe license key</a> to be eligible for support & updates.", 'my-tickets-stripe' ), admin_url( 'admin.php?page=my-tickets' ) );
 	add_action( 'admin_notices', create_function( '', "if ( ! current_user_can( 'manage_options' ) ) { return; } else { echo \"<div class='error'><p>$message</p></div>\";}" ) );
-}
-
-if ( !function_exists( 'mt_zerodecimal_currency' ) ) {
-	// if not up to date and this function doesn't exist, then My Tickets doesn't support zero decimal currencies.
-	function mt_zerodecimal_currency() {
-		return false;
-	}
 }
