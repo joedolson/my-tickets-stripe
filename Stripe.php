@@ -85,11 +85,11 @@ function mt_stripe_ipn() {
 		$options      = array_merge( mt_default_settings(), get_option( 'mt_settings' ) );
 		// these all need to be set from Stripe data
 		$stripe_options = $options['mt_gateways']['stripe'];
-		if ( isset( $stripe_options['test_mode'] ) && $stripe_options['test_mode'] ) {
+		if ( isset( $stripe_options['test_mode'] ) && $stripe_options['test_mode'] == 'true' ) {
 			$secret_key = trim( $stripe_options['test_secret'] );
 		} else {
 			$secret_key = trim( $stripe_options['live_secret'] );
-		}		
+		}
 		
 		Stripe::setApiKey( $secret_key );
 
@@ -129,7 +129,7 @@ function mt_stripe_ipn() {
 				//mt_log_error( $e );
 			}		
 		
-		}		
+		}
 		
 	}
 
@@ -386,10 +386,10 @@ function mt_stripe_enqueue_scripts() {
 	if ( is_page( $page ) ) {	
 		$stripe_options = $options['mt_gateways']['stripe'];
 		// check if we are using test mode
-		if( isset( $stripe_options['test_mode'] ) && $stripe_options['test_mode'] ) {
+		if( isset( $stripe_options['test_mode'] ) && $stripe_options['test_mode'] == 'true' ) {
 			$publishable = trim( $stripe_options['test_public'] );
 		} else {
-			$publishable = trim( $stripe_options['live_public'] );
+			$publishable = trim( $stripe_options['prod_public'] );
 		}
 		wp_enqueue_style( 'mt.stripe.css', plugins_url( 'css/stripe.css', __FILE__ ) );
 		wp_enqueue_script('jquery');
@@ -413,7 +413,7 @@ function my_tickets_stripe_process_payment() {
 		$purchase_page  = get_permalink( $options['mt_purchase_page'] );
 		
 		// check if we are using test mode
-		if( isset( $stripe_options['test_mode'] ) && $stripe_options['test_mode'] ) {
+		if( isset( $stripe_options['test_mode'] )  && $stripe_options['test_mode'] == 'true' ) {
 			$secret_key = trim( $stripe_options['test_secret'] );
 		} else {
 			$secret_key = trim( $stripe_options['live_secret'] );
@@ -535,7 +535,7 @@ function mt_stripe_save_license( $response, $post ) {
 }
 
 // these are existence checkers. Exist if licensed.
-if ( get_option( 'mt_stripe_license_key_valid' ) == 'active' ) {
+if ( get_option( 'mt_stripe_license_key_valid' ) == 'valid' ) {
 	function mt_stripe_valid() {
 		return true;
 	}

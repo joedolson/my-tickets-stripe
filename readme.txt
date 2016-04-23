@@ -2,8 +2,8 @@
 Contributors: joedolson
 Donate link: http://www.joedolson.com/my-tickets/add-ons/
 Tags: my-tickets, stripe
-Requires at least: 3.9.8
-Tested up to: 4.4.2
+Requires at least: 4.1
+Tested up to: 4.5
 Stable tag: trunk
 
 Support for Stripe in My Tickets.
@@ -24,6 +24,11 @@ New or updated translations are always appreciated. The translation files are in
 
 == Changelog ==
 
+= 1.0.1 =
+
+* Bug fix: Incorrect variable comparison caused notice about license validation to always show
+* Bug fix: Incorrect call to Stripe public key in some contexts
+* Bug fix: Improved value comparison in switching between live and test mode for Stripe
 
 = 1.0.0 =
 
