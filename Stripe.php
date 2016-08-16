@@ -5,7 +5,7 @@ Plugin URI: http://www.joedolson.com/
 Description: Add support for the Stripe payment gateway to My Tickets.
 Author: Joseph C Dolson
 Author URI: http://www.joedolson.com/my-tickets/add-ons/
-Version: 1.0.1
+Version: 1.0.2
 */
 /*  Copyright 2016 Joe Dolson (email : joe@joedolson.com)
 
@@ -24,7 +24,7 @@ Version: 1.0.1
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 global $mt_stripe_version;
-$mt_stripe_version = '1.0.1';
+$mt_stripe_version = '1.0.2';
 load_plugin_textdomain( 'my-tickets-stripe', false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
 
 // requires My Tickets version 1.4.0

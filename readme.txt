@@ -3,7 +3,7 @@ Contributors: joedolson
 Donate link: http://www.joedolson.com/my-tickets/add-ons/
 Tags: my-tickets, stripe
 Requires at least: 4.1
-Tested up to: 4.5
+Tested up to: 4.6
 Stable tag: trunk
 
 Support for Stripe in My Tickets.
@@ -23,6 +23,11 @@ New or updated translations are always appreciated. The translation files are in
 3. Go to My Tickets > Payment Settings and configure the Stripe payment gateway.
 
 == Changelog ==
+
+= 1.0.2 =
+
+* Bug fix: Incorrect call to Stripe secret value in some contexts
+* Bug fix: Correctly call transaction ID & payer name when passing data to save from Stripe.
 
 = 1.0.1 =
 
