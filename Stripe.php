@@ -5,7 +5,7 @@ Plugin URI: http://www.joedolson.com/
 Description: Add support for the Stripe payment gateway to My Tickets.
 Author: Joseph C Dolson
 Author URI: http://www.joedolson.com/my-tickets/add-ons/
-Version: 1.0.2
+Version: 1.0.3
 */
 /*  Copyright 2016 Joe Dolson (email : joe@joedolson.com)
 
@@ -24,7 +24,7 @@ Version: 1.0.2
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 global $mt_stripe_version;
-$mt_stripe_version = '1.0.2';
+$mt_stripe_version = '1.0.3';
 load_plugin_textdomain( 'my-tickets-stripe', false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
 
 // requires My Tickets version 1.4.0
@@ -69,8 +69,9 @@ if ( class_exists( 'EDD_SL_Plugin_Updater' ) ) { // prevent fatal error if doesn
  *
  * @package Stripe
  */
-
-require_once( 'lib/Stripe.php' );
+if ( !class_exists( 'Stripe' ) ) {
+	require_once( 'lib/Stripe.php' );
+}
 
 /**
  * Process events sent from from Stripe
@@ -406,8 +407,10 @@ add_action( 'init', 'my_tickets_stripe_process_payment' );
 function my_tickets_stripe_process_payment() {
 	if ( isset( $_POST['_mt_action']) && $_POST['_mt_action'] == 'stripe' && wp_verify_nonce( $_POST['_wp_stripe_nonce'], 'my-tickets-stripe' ) ) {
 		// load the stripe libraries
-		require_once( 'lib/Stripe.php' );
-
+		if ( ! class_exists( 'Stripe' ) ) {
+			require_once( 'lib/Stripe.php' );
+		}
+		
  		$options        = array_merge( mt_default_settings(), get_option( 'mt_settings' ) );		
 		$stripe_options = $options['mt_gateways']['stripe'];
 		$purchase_page  = get_permalink( $options['mt_purchase_page'] );
