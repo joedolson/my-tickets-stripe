@@ -68,6 +68,7 @@ if ( class_exists( 'EDD_SL_Plugin_Updater' ) ) { // prevent fatal error if doesn
 }
 
 /**
+ * Import Stripe class.
  *
  * @package Stripe
  */
@@ -97,10 +98,10 @@ function mt_stripe_ipn() {
 		Stripe::setApiKey( $secret_key );
 
 		// retrieve the request's body and parse it as JSON.
-		$body = @file_get_contents('php://input');
+		$body = @file_get_contents( 'php://input' );
 
 		// grab the event information.
-		$event_json = json_decode($body);
+		$event_json = json_decode( $body );
 
 		// this will be used to retrieve the event from Stripe.
 		$event_id = $event_json->id;
@@ -128,8 +129,9 @@ function mt_stripe_ipn() {
 				do_action( 'mt_stripe_event', $charge );
 
 			} catch ( Exception $e ) {
-				// --> create this function
-				//mt_log_error( $e );
+				if ( function_exists( 'mt_log_error' ) ) {
+					mt_log_error( $e );
+				}
 			}
 
 		}
@@ -157,9 +159,9 @@ add_filter( 'mt_currencies', 'mt_stripe_currencies', 10, 1 );
  * @return return full currency array.
  */
 function mt_stripe_currencies( $currencies ) {
-	$options  = ( ! is_array( get_option( 'mt_settings' ) ) ) ? array() : get_option( 'mt_settings' );
-	$defaults = mt_default_settings();
-	$options  = array_merge( $defaults, $options );
+	$options     = ( ! is_array( get_option( 'mt_settings' ) ) ) ? array() : get_option( 'mt_settings' );
+	$defaults    = mt_default_settings();
+	$options     = array_merge( $defaults, $options );
 	$mt_gateways = $options['mt_gateway'];
 
 	if ( is_array( $mt_gateways ) && in_array( 'authorizenet', $mt_gateways ) ) {
@@ -168,7 +170,7 @@ function mt_stripe_currencies( $currencies ) {
 		foreach ( $stripe as $currency ) {
 			$keys = array_keys( $currencies );
 			if ( in_array( $currency, $keys ) ) {
-				$return[$currency] = $currencies[$currency];
+				$return[ $currency ] = $currencies[ $currency ];
 			}
 		}
 
@@ -342,15 +344,15 @@ function mt_stripe_form( $url, $payment_id, $total, $args ) {
 		<fieldset>
 			<legend>" . __( 'Credit Card Details', 'my-tickets-stripe' ) . "</legend>
 			<div class='form-row'>
-				<label>" . __('Name on card', 'my-tickets-stripe') . '</label>
+				<label>" . __( 'Name on card', 'my-tickets-stripe' ) . '</label>
 				<input type="text" size="20" autocomplete="cc-name" class="card-name" />
 			</div>
 			<div class="form-row">
-				<label>' . __('Credit Card Number', 'my-tickets-stripe') . '</label>
+				<label>' . __( 'Credit Card Number', 'my-tickets-stripe' ) . '</label>
 				<input type="text" size="20" autocomplete="cc-number" class="card-number cc-num" />
 			</div>
 			<div class="form-row">
-				<label for="cvc">' . __('CVC', 'my-tickets-stripe') . '</label>
+				<label for="cvc">' . __( 'CVC', 'my-tickets-stripe' ) . '</label>
 				<input type="text" size="4" autocomplete="off" class="card-cvc cc-cvc" id="cvc" />
 			</div>
 			<div class="form-row">
@@ -414,7 +416,7 @@ function mt_stripe_form( $url, $payment_id, $total, $args ) {
 	$form .= mt_render_field( 'address', 'stripe' );
 	$form .= "<input type='submit' name='stripe_submit' id='mt-stripe-submit' class='button' value='" . esc_attr( apply_filters( 'mt_gateway_button_text', __( 'Pay Now', 'my-tickets' ), 'stripe' ) ) . "' />";
 	$form .= apply_filters( 'mt_stripe_form', '', 'stripe', $args );
-	$form .= "</form>";
+	$form .= '</form>';
 
 	return $form;
 }
@@ -438,7 +440,7 @@ function mt_stripe_enqueue_scripts() {
 		wp_enqueue_script( 'jquery' );
 		wp_enqueue_script( 'stripe', 'https://js.stripe.com/v1/' );
 		wp_enqueue_script( 'mt.stripe', plugins_url( 'js/stripe.js', __FILE__ ), array( 'jquery' ) );
-		wp_localize_script( 'mt.stripe', 'mt_stripe', array( 'publishable_key' => $publishable, ) );
+		wp_localize_script( 'mt.stripe', 'mt_stripe', array( 'publishable_key' => $publishable ) );
 	}
 }
 
@@ -485,10 +487,10 @@ function my_tickets_stripe_process_payment() {
 		try {
 			Stripe::setApiKey( $secret_key );
 			$charge = Stripe_Charge::create( array(
-					'amount' => $amount,
+					'amount'   => $amount,
 					'currency' => $options['mt_currency'],
-					'card' => $token,
-					'metadata' => array( 
+					'card'     => $token,
+					'metadata' => array(
 						'email'      => $payer_email, 
 						'payment_id' => $payment_id,
 					),
@@ -550,7 +552,8 @@ function my_tickets_stripe_process_payment() {
 		mt_handle_payment( 'VERIFIED', '200', $data, $_REQUEST );
 
 		// redirect back to our previous page with the added query variable
-		wp_redirect( $redirect ); exit;
+		wp_redirect( $redirect );
+		exit;
 	}
 }
 
