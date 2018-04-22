@@ -597,6 +597,11 @@ function mt_stripe_save_license( $response, $post ) {
 
 // these are existence checkers. Exist if licensed.
 if ( 'valid' == get_option( 'mt_stripe_license_key_valid' ) ) {
+	/**
+	 * I don't believe this is being used.
+	 *
+	 * @return boolean
+	 */
 	function mt_stripe_valid() {
 		return true;
 	}
@@ -608,11 +613,28 @@ if ( 'valid' == get_option( 'mt_stripe_license_key_valid' ) ) {
  * Display admin notice if license not provided.
  */
 function mt_stripe_licensed() {
-	// Translators: Settings page URL.
-	$message = sprintf( __( "Please <a href='%s'>enter your My Tickets: Stripe license key</a> to be eligible for support.", 'my-tickets-stripe' ), admin_url( 'admin.php?page=my-tickets' ) );
-	if ( ! current_user_can( 'manage_options' ) ) { 
-		return; 
-	} else { 
-		echo "<div class='error'><p>$message</p></div>";
+	if ( stripos( $current_screen->id, 'my-tickets' ) ) {
+		// Translators: Settings page URL.
+		$message = sprintf( __( "Please <a href='%s'>enter your My Tickets: Stripe license key</a> to be eligible for support.", 'my-tickets-stripe' ), admin_url( 'admin.php?page=my-tickets' ) );
+		if ( ! current_user_can( 'manage_options' ) ) { 
+			return; 
+		} else { 
+			echo "<div class='error'><p>$message</p></div>";
+		}
+	}
+}
+
+add_action( 'admin_notices', 'mt_stripe_requires_ssl' );
+/**
+ * Stripe only functions under SSL. Notify user that this is required.
+ */
+function mt_stripe_requires_ssl() {
+	global $current_screen;
+	if ( stripos( $current_screen->id, 'my-tickets' ) ) {
+		if ( stripos( home_url(), 'https' ) ) {
+			return;
+		} else {
+			echo "<div class='error'><p>" . __( 'Stripe requires an SSL Certificate. Please switch your site to HTTPS. <a href="https://websitesetup.org/http-to-https-wordpress/">How to switch WordPress to HTTPS</a>', 'my-tickets-stripe' ) . '</p></div>';
+		}
 	}
 }
