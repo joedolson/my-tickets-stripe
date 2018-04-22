@@ -613,6 +613,7 @@ if ( 'valid' == get_option( 'mt_stripe_license_key_valid' ) ) {
  * Display admin notice if license not provided.
  */
 function mt_stripe_licensed() {
+	global $current_screen;
 	if ( stripos( $current_screen->id, 'my-tickets' ) ) {
 		// Translators: Settings page URL.
 		$message = sprintf( __( "Please <a href='%s'>enter your My Tickets: Stripe license key</a> to be eligible for support.", 'my-tickets-stripe' ), admin_url( 'admin.php?page=my-tickets' ) );

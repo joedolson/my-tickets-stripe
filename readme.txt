@@ -28,6 +28,9 @@ New or updated translations are always appreciated. The translation files are in
 = 1.0.3 =
 
 * Bug fix: don't declare class if Stripe class already declared.
+* Constrain admin notices to My Tickets settings.
+* Add admin notice to require SSL.
+* Update code style.
 
 = 1.0.2 =
 
