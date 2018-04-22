@@ -1,30 +1,45 @@
 <?php
+/**
+ * My Tickets: Stripe payment gateway
+ *
+ * @package     My TicketsL Stripe
+ * @author      Joe Dolson
+ * @copyright   2016-2018 Joe Dolson
+ * @license     GPL-2.0+
+ *
+ * @wordpress-plugin
+ * Plugin Name: My Tickets: Stripe
+ * Plugin URI: http://www.joedolson.com/my-tickets/add-ons/
+ * Description: Add support for the Stripe payment gateway to My Tickets.
+ * Author: Joseph C Dolson
+ * Author URI: http://www.joedolson.com
+ * Text Domain: my-tickets-stripe
+ * License:     GPL-2.0+
+ * License URI: http://www.gnu.org/license/gpl-2.0.txt
+ * Domain Path: lang
+ * Version:     1.0.3
+ */
+
 /*
-Plugin Name: My Tickets: Stripe
-Plugin URI: http://www.joedolson.com/
-Description: Add support for the Stripe payment gateway to My Tickets.
-Author: Joseph C Dolson
-Author URI: http://www.joedolson.com/my-tickets/add-ons/
-Version: 1.0.4
+	Copyright 2016-2018  Joe Dolson (email : joe@joedolson.com)
+
+	This program is free software; you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-/*  Copyright 2016-2018 Joe Dolson (email : joe@joedolson.com)
 
-    This program is open source software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-*/
 global $mt_stripe_version;
-$mt_stripe_version = '1.0.4';
+$mt_stripe_version = '1.0.3';
 load_plugin_textdomain( 'my-tickets-stripe', false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
 
 add_action( 'admin_notices', 'mt_stripe_mt_version' );
