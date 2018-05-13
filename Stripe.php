@@ -336,7 +336,7 @@ function mt_gateway_stripe( $form, $gateway, $args ) {
  *
  * @param string  $url $url to send query to. (Unused)
  * @param integer $payment_id ID for this payment.
- * @param float   $total Total amount of payment. 
+ * @param float   $total Total amount of payment.
  * @param array   $args Payment arguments.
  *
  * @return string.
@@ -506,7 +506,7 @@ function my_tickets_stripe_process_payment() {
 					'currency' => $options['mt_currency'],
 					'card'     => $token,
 					'metadata' => array(
-						'email'      => $payer_email, 
+						'email'      => $payer_email,
 						'payment_id' => $payment_id,
 					),
 				)
@@ -632,9 +632,9 @@ function mt_stripe_licensed() {
 	if ( stripos( $current_screen->id, 'my-tickets' ) ) {
 		// Translators: Settings page URL.
 		$message = sprintf( __( "Please <a href='%s'>enter your My Tickets: Stripe license key</a> to be eligible for support.", 'my-tickets-stripe' ), admin_url( 'admin.php?page=my-tickets' ) );
-		if ( ! current_user_can( 'manage_options' ) ) { 
-			return; 
-		} else { 
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		} else {
 			echo "<div class='error'><p>$message</p></div>";
 		}
 	}
@@ -647,7 +647,7 @@ add_action( 'admin_notices', 'mt_stripe_requires_ssl' );
 function mt_stripe_requires_ssl() {
 	global $current_screen;
 	if ( stripos( $current_screen->id, 'my-tickets' ) ) {
-		if ( stripos( home_url(), 'https' ) ) {
+		if ( 0 === stripos( home_url(), 'https' ) ) {
 			return;
 		} else {
 			echo "<div class='error'><p>" . __( 'Stripe requires an SSL Certificate. Please switch your site to HTTPS. <a href="https://websitesetup.org/http-to-https-wordpress/">How to switch WordPress to HTTPS</a>', 'my-tickets-stripe' ) . '</p></div>';

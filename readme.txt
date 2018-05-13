@@ -20,10 +20,15 @@ New or updated translations are always appreciated. The translation files are in
 1. Upload the `/my-tickets-stripe/` directory into your WordPress plugins directory.
 
 2. Activate the plugin on your WordPress plugins page
-  
+
 3. Go to My Tickets > Payment Settings and configure the Stripe payment gateway.
 
 == Changelog ==
+
+= 1.0.4 =
+
+* Bug fix: Need to test for 0, not falsey value in stripos
+
 
 = 1.0.3 =
 
