@@ -145,9 +145,7 @@ function mt_stripe_ipn() {
 					mt_log_error( $e );
 				}
 			}
-
 		}
-
 	}
 
 	return;
@@ -215,7 +213,8 @@ function mt_setup_stripe( $gateways ) {
 				'value' => 'true',
 			),
 		),
-		'note' => sprintf( __( 'To enable automatic refund processing, add <code>%s</code> as a Webhook URL in your Stripe account at Stripe > Dashboard > Settings > Webhooks.', 'my-tickets=stripe' ), add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) ),
+		// Translators: Stripe webhook URL for this site.
+		'note' => sprintf( __( 'To enable automatic refund processing, add <code>%s</code> as a Webhook URL in your Stripe account at Stripe > Dashboard > Settings > Webhooks.', 'my-tickets-stripe' ), add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) ),
 	);
 
 	return $gateways;
@@ -265,7 +264,7 @@ add_filter( 'mt_format_transaction', 'mt_stripe_transaction', 10, 2 );
  * @return array $transaction.
  */
 function mt_stripe_transaction( $transaction, $gateway ) {
-	if ( $gateway == 'stripe' ) {
+	if ( 'stripe' == $gateway ) {
 		// alter return value if desired.
 	}
 
