@@ -28,7 +28,8 @@ New or updated translations are always appreciated. The translation files are in
 = 1.0.4 =
 
 * Bug fix: Need to test for 0, not falsey value in stripos
-
+* Bug fix: Payment ID parameter in URL should be 'payment_id', not 'payment'
+*
 
 = 1.0.3 =
 

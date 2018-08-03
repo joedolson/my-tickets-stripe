@@ -68,16 +68,13 @@ if ( ! class_exists( 'EDD_SL_Plugin_Updater' ) ) {
 	include( dirname( __FILE__ ) . '/updates/EDD_SL_Plugin_Updater.php' );
 }
 
-// retrieve our license key from the DB.
-$license_key = trim( get_option( 'mt_stripe_license_key' ) );
 // setup the updater.
-
 if ( class_exists( 'EDD_SL_Plugin_Updater' ) ) { // prevent fatal error if doesn't exist for some reason.
 	$edd_updater = new EDD_SL_Plugin_Updater( EDD_MT_STRIPE_STORE_URL, __FILE__, array(
-		'version'   => $mt_stripe_version,			// current version number.
-		'license'   => $license_key,				// license key (used get_option above to retrieve from DB).
-		'item_name' => EDD_MT_STRIPE_ITEM_NAME,		// name of this plugin.
-		'author'    => 'Joe Dolson',				// author of this plugin.
+		'version'   => $mt_stripe_version,								// current version number.
+		'license'   => trim( get_option( 'mt_stripe_license_key' ) ),	// license key.
+		'item_name' => EDD_MT_STRIPE_ITEM_NAME,							// name of this plugin.
+		'author'    => 'Joe Dolson',									// author of this plugin.
 		'url'       => home_url(),
 	) );
 }
@@ -481,7 +478,7 @@ function my_tickets_stripe_process_payment() {
 			$secret_key = trim( $stripe_options['prod_secret'] );
 		}
 
-		$payment_id  = $_POST['payment_id'];
+		$payment_id  = absint( $_POST['payment_id'] );
 		$payer_email = get_post_meta( $payment_id, '_email', true );
 		$paid        = get_post_meta( $payment_id, '_total_paid', true );
 		$payer_name  = get_the_title( $payment_id );
@@ -534,7 +531,7 @@ function my_tickets_stripe_process_payment() {
 					'gateway'        => 'stripe',
  					'transaction_id' => $transaction_id,
 					'receipt_id'     => $receipt_id,
-					'payment'        => $payment_id,
+					'payment_id'     => $payment_id,
 				), $purchase_page ) ) );
 
 		} catch ( Exception $e ) {
@@ -546,7 +543,7 @@ function my_tickets_stripe_process_payment() {
 			$redirect = mt_replace_http( esc_url_raw( add_query_arg( array(
 					'response_code' => 'failed',
 					'gateway'       => 'stripe',
-					'payment'       => $payment_id,
+					'payment_id'    => $payment_id,
 					'reason'        => urlencode( $message ),
 				), $purchase_page ) ) );
 		}
@@ -567,7 +564,7 @@ function my_tickets_stripe_process_payment() {
 		mt_handle_payment( 'VERIFIED', '200', $data, $_REQUEST );
 
 		// redirect back to our previous page with the added query variable
-		wp_redirect( $redirect );
+		wp_safe_redirect( $redirect );
 		exit;
 	}
 }
