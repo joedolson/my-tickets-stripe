@@ -2,7 +2,7 @@
 /**
  * My Tickets: Stripe payment gateway
  *
- * @package     My TicketsL Stripe
+ * @package     My Tickets: Stripe
  * @author      Joe Dolson
  * @copyright   2016-2018 Joe Dolson
  * @license     GPL-2.0+
@@ -498,10 +498,11 @@ function my_tickets_stripe_process_payment() {
 		try {
 			Stripe::setApiKey( $secret_key );
 			$charge = Stripe_Charge::create( array(
-					'amount'   => $amount,
-					'currency' => $options['mt_currency'],
-					'card'     => $token,
-					'metadata' => array(
+					'amount'      => $amount,
+					'currency'    => $options['mt_currency'],
+					'card'        => $token,
+					'description' => sprintf( __( 'Tickets Purchased from %s', 'my-tickets-stripe' ), get_bloginfo( 'name' ) );
+					'metadata'    => array(
 						'email'      => $payer_email,
 						'payment_id' => $payment_id,
 					),
