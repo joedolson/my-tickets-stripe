@@ -25,11 +25,13 @@ New or updated translations are always appreciated. The translation files are in
 
 == Changelog ==
 
-= 1.0.4 =
+= 1.1.0 =
 
 * Bug fix: Need to test for 0, not falsey value in stripos
 * Bug fix: Payment ID parameter in URL should be 'payment_id', not 'payment'
-*
+* Bug fix: Add statement descriptor
+* Change: Add purchase description
+* Code sniffs & style changes.
 
 = 1.0.3 =
 
