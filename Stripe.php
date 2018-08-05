@@ -493,16 +493,19 @@ function my_tickets_stripe_process_payment() {
 		if ( $amount != $passed ) {
 			// probably fraudulent: user attempted to change the amount paid. Raise fraud flag?
 		}
-
+		// Create a statement descriptor.
+		$remove               = array( '<', '>', '"', '\'' );
+		$statement_descriptor = strtoupper( substr( sanitize_text_field( str_replace( $remove, '', get_bloginfo( 'name' ) ) ), 0, 22 ) );
 		// attempt to charge the customer's card.
 		try {
 			Stripe::setApiKey( $secret_key );
 			$charge = Stripe_Charge::create( array(
-					'amount'      => $amount,
-					'currency'    => $options['mt_currency'],
-					'card'        => $token,
-					'description' => sprintf( __( 'Tickets Purchased from %s', 'my-tickets-stripe' ), get_bloginfo( 'name' ) );
-					'metadata'    => array(
+					'amount'               => $amount,
+					'currency'             => $options['mt_currency'],
+					'card'                 => $token,
+					'description'          => sprintf( __( 'Tickets Purchased from %s', 'my-tickets-stripe' ), get_bloginfo( 'name' ) );
+					'statement_descriptor' => $statement_descriptor,
+					'metadata'             => array(
 						'email'      => $payer_email,
 						'payment_id' => $payment_id,
 					),
