@@ -503,7 +503,7 @@ function my_tickets_stripe_process_payment() {
 					'amount'               => $amount,
 					'currency'             => $options['mt_currency'],
 					'card'                 => $token,
-					'description'          => sprintf( __( 'Tickets Purchased from %s', 'my-tickets-stripe' ), get_bloginfo( 'name' ) );
+					'description'          => sprintf( __( 'Tickets Purchased from %s', 'my-tickets-stripe' ), get_bloginfo( 'name' ) ),
 					'statement_descriptor' => $statement_descriptor,
 					'metadata'             => array(
 						'email'      => $payer_email,
