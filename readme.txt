@@ -25,6 +25,10 @@ New or updated translations are always appreciated. The translation files are in
 
 == Changelog ==
 
+= 1.1.1 =
+
+* Fix syntax error in 1.1.0
+
 = 1.1.0 =
 
 * Bug fix: Need to test for 0, not falsey value in stripos

@@ -17,7 +17,7 @@
  * License:     GPL-2.0+
  * License URI: http://www.gnu.org/license/gpl-2.0.txt
  * Domain Path: lang
- * Version:     1.1.0
+ * Version:     1.1.1
  */
 
 /*
@@ -39,7 +39,7 @@
 */
 
 global $mt_stripe_version;
-$mt_stripe_version = '1.1.0';
+$mt_stripe_version = '1.1.1';
 load_plugin_textdomain( 'my-tickets-stripe', false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
 
 add_action( 'admin_notices', 'mt_stripe_mt_version' );
