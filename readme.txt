@@ -25,6 +25,10 @@ New or updated translations are always appreciated. The translation files are in
 
 == Changelog ==
 
+= 1.1.2 =
+
+* Fix script call: does not need to require a Page to load scripts, just any singular context.
+
 = 1.1.1 =
 
 * Fix syntax error in 1.1.0

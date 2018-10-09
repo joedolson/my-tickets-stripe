@@ -439,7 +439,7 @@ add_action( 'wp_enqueue_scripts', 'mt_stripe_enqueue_scripts' );
 function mt_stripe_enqueue_scripts() {
 	$options = array_merge( mt_default_settings(), get_option( 'mt_settings' ) );
 	$page    = $options['mt_purchase_page'];
-	if ( is_page( $page ) ) {
+	if ( is_single( $page ) ) {
 		$stripe_options = $options['mt_gateways']['stripe'];
 		// check if we are using test mode.
 		if ( isset( $stripe_options['test_mode'] ) && 'true' == $stripe_options['test_mode'] ) {
