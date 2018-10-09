@@ -28,6 +28,7 @@ New or updated translations are always appreciated. The translation files are in
 = 1.1.2 =
 
 * Fix script call: does not need to require a Page to load scripts, just any singular context.
+* Add .pot file for translators.
 
 = 1.1.1 =
 
