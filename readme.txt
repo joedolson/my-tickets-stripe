@@ -25,6 +25,10 @@ New or updated translations are always appreciated. The translation files are in
 
 == Changelog ==
 
+= 1.1.3 =
+
+* Previous script fix was incorrect; use is_singular, not is_single.
+
 = 1.1.2 =
 
 * Fix script call: does not need to require a Page to load scripts, just any singular context.
