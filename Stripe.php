@@ -17,7 +17,7 @@
  * License:     GPL-2.0+
  * License URI: http://www.gnu.org/license/gpl-2.0.txt
  * Domain Path: lang
- * Version:     1.1.3
+ * Version:     1.1.4
  */
 
 /*
@@ -39,7 +39,7 @@
 */
 
 global $mt_stripe_version;
-$mt_stripe_version = '1.1.3';
+$mt_stripe_version = '1.1.4';
 load_plugin_textdomain( 'my-tickets-stripe', false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
 
 add_action( 'admin_notices', 'mt_stripe_mt_version' );
@@ -439,7 +439,7 @@ add_action( 'wp_enqueue_scripts', 'mt_stripe_enqueue_scripts' );
 function mt_stripe_enqueue_scripts() {
 	$options = array_merge( mt_default_settings(), get_option( 'mt_settings' ) );
 	$page    = $options['mt_purchase_page'];
-	if ( is_singular( $page ) ) {
+	if ( is_singular() ) {
 		$stripe_options = $options['mt_gateways']['stripe'];
 		// check if we are using test mode.
 		if ( isset( $stripe_options['test_mode'] ) && 'true' == $stripe_options['test_mode'] ) {

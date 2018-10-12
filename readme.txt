@@ -25,6 +25,10 @@ New or updated translations are always appreciated. The translation files are in
 
 == Changelog ==
 
+= 1.1.4 =
+
+* With correct function, must not pass argument.
+
 = 1.1.3 =
 
 * Previous script fix was incorrect; use is_singular, not is_single.
