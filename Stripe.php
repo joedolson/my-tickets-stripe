@@ -212,6 +212,7 @@ function mt_setup_stripe( $gateways ) {
 				'type'  => 'checkbox',
 				'value' => 'true',
 			),
+			'selector' => __( 'Gateway selector label', 'my-tickets' ),
 		),
 		// Translators: Stripe webhook URL for this site.
 		'note' => sprintf( __( 'To enable automatic refund processing, add <code>%s</code> as a Webhook URL in your Stripe account at Stripe > Dashboard > Settings > Webhooks.', 'my-tickets-stripe' ), add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) ),
