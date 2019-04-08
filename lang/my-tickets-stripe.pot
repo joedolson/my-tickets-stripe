@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 "Project-Id-Version: My Tickets: Stripe\n"
-"POT-Creation-Date: 2018-09-07 21:22-0500\n"
-"PO-Revision-Date: 2018-09-07 21:22-0500\n"
+"POT-Creation-Date: 2019-04-08 10:23-0500\n"
+"PO-Revision-Date: 2019-04-08 10:22-0500\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -51,107 +51,111 @@ msgstr ""
 msgid "Test Mode Enabled"
 msgstr ""
 
-#: Stripe.php:217
+#: Stripe.php:215
+msgid "Gateway selector label"
+msgstr ""
+
+#: Stripe.php:218
 #, php-format
 msgid ""
 "To enable automatic refund processing, add <code>%s</code> as a Webhook URL "
 "in your Stripe account at Stripe > Dashboard > Settings > Webhooks."
 msgstr ""
 
-#: Stripe.php:292
+#: Stripe.php:293
 #, php-format
 msgid ""
 "Thank you for your purchase! Your Stripe transaction id is <code>#%1$s</"
 "code>. <a href=\"%2$s\">View your receipt</a>"
 msgstr ""
 
-#: Stripe.php:294
+#: Stripe.php:295
 msgid "Unknown failure."
 msgstr ""
 
-#: Stripe.php:296
+#: Stripe.php:297
 #, php-format
 msgid "Sorry, an error occurred: %s"
 msgstr ""
 
-#: Stripe.php:356
+#: Stripe.php:357
 msgid "Credit Card Details"
 msgstr ""
 
-#: Stripe.php:358
+#: Stripe.php:359
 msgid "Name on card"
 msgstr ""
 
-#: Stripe.php:362
+#: Stripe.php:363
 msgid "Credit Card Number"
 msgstr ""
 
-#: Stripe.php:366
+#: Stripe.php:367
 msgid "CVC"
 msgstr ""
 
-#: Stripe.php:371
+#: Stripe.php:372
 msgid "Expiration (MM/YY)"
 msgstr ""
 
-#: Stripe.php:372
+#: Stripe.php:373
 msgid "Expiration month"
 msgstr ""
 
-#: Stripe.php:388
+#: Stripe.php:389
 msgid "Expiration year"
 msgstr ""
 
-#: Stripe.php:398
+#: Stripe.php:399
 msgid "Billing Address"
 msgstr ""
 
-#: Stripe.php:400
+#: Stripe.php:401
 msgid "Address (1)"
 msgstr ""
 
-#: Stripe.php:404
+#: Stripe.php:405
 msgid "Address (2)"
 msgstr ""
 
-#: Stripe.php:408
+#: Stripe.php:409
 msgid "City"
 msgstr ""
 
-#: Stripe.php:412
+#: Stripe.php:413
 msgid "Zip / Postal Code"
 msgstr ""
 
-#: Stripe.php:416
+#: Stripe.php:417
 msgid "Country"
 msgstr ""
 
-#: Stripe.php:420
+#: Stripe.php:421
 msgid "State"
 msgstr ""
 
-#: Stripe.php:428
+#: Stripe.php:429
 msgid "Pay Now"
 msgstr ""
 
-#: Stripe.php:506
+#: Stripe.php:507
 #, php-format
 msgid "Tickets Purchased from %s"
 msgstr ""
 
 #. Plugin Name of the plugin/theme
-#: Stripe.php:587 Stripe.php:606
+#: Stripe.php:588 Stripe.php:607
 msgid "My Tickets: Stripe"
 msgstr ""
 
-#: Stripe.php:634
+#: Stripe.php:635
 #, php-format
 msgid ""
 "Please <a href='%s'>enter your My Tickets: Stripe license key</a> to be "
 "eligible for support."
 msgstr ""
 
-#: Stripe.php:653
+#: Stripe.php:654
 msgid ""
 "Stripe requires an SSL Certificate. Please switch your site to HTTPS. <a "
 "href=\"https://websitesetup.org/http-to-https-wordpress/\">How to switch "

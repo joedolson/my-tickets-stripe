@@ -3,7 +3,7 @@ Contributors: joedolson
 Donate link: http://www.joedolson.com/my-tickets/add-ons/
 Tags: my-tickets, stripe
 Requires at least: 4.4
-Tested up to: 5.0
+Tested up to: 5.1
 Requires PHP: 5.3
 Stable tag: trunk
 
@@ -28,7 +28,7 @@ New or updated translations are always appreciated. The translation files are in
 = 1.1.5 =
 
 * Option to define custom label for gateway selector.
-* 
+* Update .pot
 
 = 1.1.4 =
 
