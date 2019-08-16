@@ -25,6 +25,9 @@ New or updated translations are always appreciated. The translation files are in
 
 == Changelog ==
 
+
+* Update plugin updater class
+
 = 1.1.5 =
 
 * Option to define custom label for gateway selector.
