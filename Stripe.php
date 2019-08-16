@@ -450,7 +450,7 @@ function mt_stripe_enqueue_scripts() {
 		}
 		wp_enqueue_style( 'mt.stripe.css', plugins_url( 'css/stripe.css', __FILE__ ) );
 		wp_enqueue_script( 'jquery' );
-		wp_enqueue_script( 'stripe', 'https://js.stripe.com/v1/' );
+		wp_enqueue_script( 'stripe', 'https://js.stripe.com/v3/' );
 		wp_enqueue_script( 'mt.stripe', plugins_url( 'js/stripe.js', __FILE__ ), array( 'jquery' ) );
 		wp_localize_script( 'mt.stripe', 'mt_stripe', array( 'publishable_key' => $publishable ) );
 	}
