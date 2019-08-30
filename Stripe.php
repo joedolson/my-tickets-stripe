@@ -218,6 +218,18 @@ function mt_setup_stripe( $gateways ) {
 		'note' => sprintf( __( 'To enable automatic refund processing, add <code>%s</code> as a Webhook URL in your Stripe account at Stripe > Dashboard > Settings > Webhooks.', 'my-tickets-stripe' ), add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) ),
 	);
 
+	$gateways['iban'] = array(
+		'label'    => __( 'IBAN', 'my-tickets-stripe' ),
+		'selector' => __( 'Gateway selector label', 'my-tickets-stripe' ),
+		'note'     => __( 'There are no extra settings required to use International Bank Account Numbers with Stripe.', 'my-tickets-stripe' ),
+	);
+
+	$gateways['ideal'] = array(
+		'label'    => __( 'iDEAL', 'my-tickets-stripe' ),
+		'selector' => __( 'Gateway selector label', 'my-tickets-stripe' ),
+		'note'     => __( 'There are no extra settings required to use iDEAL Bank with Stripe.', 'my-tickets-stripe' ),
+	);
+
 	return $gateways;
 }
 
@@ -269,6 +281,14 @@ function mt_stripe_transaction( $transaction, $gateway ) {
 		// alter return value if desired.
 	}
 
+	if ( 'iban' == $gateway ) {
+		// iban gateway
+	}
+
+	if ( 'ideal' == $gateway ) {
+		// ideal gateway
+	}
+
 	return $transaction;
 }
 
@@ -282,7 +302,7 @@ add_filter( 'mt_response_messages', 'mt_stripe_messages', 10, 2 );
  * @return string New message.
  */
 function mt_stripe_messages( $message, $code ) {
-	if ( isset( $_GET['gateway'] ) && 'stripe' == $_GET['gateway'] ) {
+	if ( isset( $_GET['gateway'] ) && 'stripe' == $_GET['gateway'] || 'ideal' == $_GET['gateway'] || 'iban' == $_GET['gateway'] ) {
 		$options = array_merge( mt_default_settings(), get_option( 'mt_settings' ) );
 		if ( 1 == $code || 'thanks' == $code ) {
 			$receipt_id     = sanitize_text_field( $_GET['receipt_id'] );
@@ -312,17 +332,25 @@ add_filter( 'mt_gateway', 'mt_gateway_stripe', 10, 3 );
  * @return string
  */
 function mt_gateway_stripe( $form, $gateway, $args ) {
-	if ( 'stripe' == $gateway ) {
+	if ( 'stripe' == $gateway || 'ideal' == $gateway || 'iban' == $gateway ) {
 		$options    = array_merge( mt_default_settings(), get_option( 'mt_settings' ) );
 		$payment_id = $args['payment'];
-		$amount     = $args['total'];
-		$handling   = ( isset( $options['mt_handling'] ) ) ? $options['mt_handling'] : 0;
-		$shipping   = ( 'postal' == $args['method'] ) ? $options['mt_shipping'] : 0;
+		$amount     = (float) $args['total'];
+		$handling   = ( isset( $options['mt_handling'] ) ) ? (float) $options['mt_handling'] : 0;
+		$shipping   = ( 'postal' == $args['method'] ) ? (float) $options['mt_shipping'] : 0;
 		$total      = ( mt_zerodecimal_currency() ) ? ( $amount + $handling + $shipping ) : ( $amount + $handling + $shipping ) * 100;
 		$purchaser  = get_the_title( $payment_id );
 
 		$url  = mt_replace_http( add_query_arg( 'mt_stripe_ipn', 'true', trailingslashit( home_url() ) ) );
-		$form = mt_stripe_form( $url, $payment_id, $total, $args );
+		if ( 'stripe' == $gateway ) {
+			$form = mt_stripe_form( $url, $payment_id, $total, $args );
+		}
+		if ( 'ideal' == $gateway ) {
+			$form = mt_stripe_form( $url, $payment_id, $total, $args, 'ideal' );
+		}
+		if ( 'iban' == $gateway ) {
+			$form = mt_stripe_form( $url, $payment_id, $total, $args, 'iban' );
+		}
 	}
 
 	return $form;
@@ -335,100 +363,79 @@ function mt_gateway_stripe( $form, $gateway, $args ) {
  * @param integer $payment_id ID for this payment.
  * @param float   $total Total amount of payment.
  * @param array   $args Payment arguments.
+ * @param string  $method Method of payment selected.
  *
  * @return string.
  */
-function mt_stripe_form( $url, $payment_id, $total, $args ) {
+function mt_stripe_form( $url, $payment_id, $total, $args, $method = 'stripe' ) {
 	$options = array_merge( mt_default_settings(), get_option( 'mt_settings' ) );
-	$year    = date( 'Y' );
-	$years   = '';
-	for( $i = 0; $i < 20; $i ++ ) {
-		$years .= "<option value='$year'>$year</option>";
-		$year ++;
-	}
-	$nonce = wp_create_nonce( 'my-tickets-stripe' );
-	$form  = "
-	<div class='payment-errors' aria-live='assertive'></div>
-	<form action='' method='POST' id='my-tickets-stripe-payment-form'>
-		<input type='hidden' name='_wp_stripe_nonce' value='$nonce' />
-		<input type='hidden' name='_mt_action' value='stripe' />
-		<div class='card section'>
-		<fieldset>
-			<legend>" . __( 'Credit Card Details', 'my-tickets-stripe' ) . "</legend>
-			<div class='form-row'>
-				<label>" . __( 'Name on card', 'my-tickets-stripe' ) . '</label>
-				<input type="text" size="20" autocomplete="cc-name" class="card-name" />
-			</div>
-			<div class="form-row">
-				<label>' . __( 'Credit Card Number', 'my-tickets-stripe' ) . '</label>
-				<input type="text" size="20" autocomplete="cc-number" class="card-number cc-num" />
-			</div>
-			<div class="form-row">
-				<label for="cvc">' . __( 'CVC', 'my-tickets-stripe' ) . '</label>
-				<input type="text" size="4" autocomplete="off" class="card-cvc cc-cvc" id="cvc" />
-			</div>
-			<div class="form-row">
-			<fieldset>
-				<legend>' . __( 'Expiration (MM/YY)', 'my-tickets-stripe' ) . '</legend>
-				<label for="expiry-month" class="screen-reader-text">' . __('Expiration month', 'my-tickets-stripe') . '</label>
-				<select class="card-expiry-month" id="expiry-month">
-					<option value="01">01</option>
-					<option value="02">02</option>
-					<option value="03">03</option>
-					<option value="04">04</option>
-					<option value="05">05</option>
-					<option value="06">06</option>
-					<option value="07">07</option>
-					<option value="08">08</option>
-					<option value="09">09</option>
-					<option value="10">10</option>
-					<option value="11">11</option>
-					<option value="12">12</option>
-				</select>
-				<span> / </span>
-				<label for="expiry-year" class="screen-reader-text">' . __( 'Expiration year', 'my-tickets-stripe' ) . '</label>
-				<select class="card-expiry-year" id="expiry-year">
-					' . $years . '
-				</select>
-			</fieldset>
-			</div>
-		</fieldset>
-		</div>
-		<div class="address section">
-		<fieldset>
-		<legend>' . __( 'Billing Address', 'my-tickets-stripe' ) . '</legend>
-			<div class="form-row">
-				<label for="address1">' . __( 'Address (1)', 'my-tickets-stripe' ) . '</label>
-				<input type="text" id="address1" name="card_address" class="card-address" />
-			</div>
-			<div class="form-row">
-				<label for="address2">' . __( 'Address (2)', 'my-tickets-stripe' ) . '</label>
-				<input type="text" id="address2" name="card_address_2" class="card-address-2" />
-			</div>
-			<div class="form-row">
-				<label for="card_city">' . __( 'City', 'my-tickets-stripe' ) . '</label>
-				<input type="text" id="card_city" name="card_city" class="card-city" />
-			</div>
-			<div class="form-row">
-				<label for="card_zip">' . __( 'Zip / Postal Code', 'my-tickets-stripe' ) . '</label>
-				<input type="text" id="card_zip" name="card_zip" class="card-zip" />
-			</div>
-			<div class="form-row">
-				<label for="card_country">' . __( 'Country', 'my-tickets-stripe' ) . '</label>
-				<input type="text" id="card_country" name="card_country" class="card-country" />
-			</div>
-			<div class="form-row">
-				<label for="card_state">' . __( 'State', 'my-tickets-stripe' ) . '</label>
-				<input type="text" id="card_state" name="card_state" class="card-state" />
-			</div>
-		</fieldset>
-		</div>';
+	// The form only displays after a POST request, and these fields are required.
+	$name    = $_POST['mt_fname'] . ' ' . $_POST['mt_lname'];
+	$email   = $_POST['mt_email'];
+	
+	$form  = '<form id="mt-payment-form" action="/charge" method="post"><div class="stripe">';
+	// Hidden form fields
 	$form .= "<input type='hidden' name='payment_id' value='" . esc_attr( $payment_id ) . "' />
-	<input type='hidden' name='amount' value='$total' />";
-	$form .= mt_render_field( 'address', 'stripe' );
-	$form .= "<input type='submit' name='stripe_submit' id='mt-stripe-submit' class='button' value='" . esc_attr( apply_filters( 'mt_gateway_button_text', __( 'Pay Now', 'my-tickets' ), 'stripe' ) ) . "' />";
+		<input type='hidden' name='amount' value='$total' />";
 	$form .= apply_filters( 'mt_stripe_form', '', 'stripe', $args );
-	$form .= '</form>';
+	if ( 'stripe' == $method ) {
+		$form .= "<div id='mt-card'>
+				<div id='mt-card-errors' role='alert'></div>
+				<div class='form-row'>
+					<label for='mt-card-element'>" . __( 'Credit or debit card', 'my-tickets-stripe' ) . "</label>
+					<div id='mt-card-element'></div>
+				</div>
+			</div>";
+	}
+	if ( 'iban' == $method ) {
+		$form .= '
+			<div id="mt-iban">
+				<div id="mt-iban-errors" role="alert"></div>
+				<div class="form-row inline">
+					<div class="col">
+					  <label for="name">' . __( 'Name', 'my-tickets-stripe' ) . '</label><input id="name" name="name" value="' . esc_attr( $name ) . '" required>
+					</div>
+					<div class="col">
+					  <label for="email">' . __( 'Email Address', 'my-tickets-stripe' ) . '</label><input id="email" name="email" type="email" value="' . esc_attr( $email ) . '"  required>
+					</div>
+				</div>
+				<div class="form-row">
+					<label for="mt-iban-element">' . __( 'IBAN', 'my-tickets-stripe' ) . '</label>
+					<div id="mt-iban-element">
+					  <!-- A Stripe Element will be inserted here. -->
+					</div>
+				</div>
+				<div id="bank-name"></div>
+				<div id="mandate-acceptance">
+					<p>' . __( 'By providing your IBAN and confirming this payment, you are
+					authorizing Rocketship Inc. and Stripe, our payment service
+					provider, to send instructions to your bank to debit your account and
+					your bank to debit your account in accordance with those instructions.
+					You are entitled to a refund from your bank under the terms and
+					conditions of your agreement with your bank. A refund must be claimed
+					within 8 weeks starting from the date on which your account was debited.', 'my-tickets-stripe' ) . '</p>
+				</div>
+			</div>';
+	}
+	if ( 'ideal' == $method ) {
+		$form .= '
+			<div id="mt-ideal">
+				<div id="mt-iban-errors" role="alert"></div>
+				<div class="form-row">
+					<label for="name">' . __( 'Name', 'my-tickets-stripe' ) . '</label>
+					<input id="name" name="name" value="' . esc_attr( $name ) . '" required>
+				</div>
+
+				<div class="form-row">
+					<label for="mt-ideal-bank-element">' . __( 'iDEAL Bank', 'my-tickets-stripe' ) . '</label>
+					<div id="mt-ideal-bank-element">
+					  <!-- A Stripe Element will be inserted here. -->
+					</div>
+				</div>
+			</div>';
+	}
+	$form .= "<input type='submit' name='stripe_submit' id='mt-stripe-submit' class='button button-primary' value='" . esc_attr( apply_filters( 'mt_gateway_button_text', __( 'Pay Now', 'my-tickets' ), 'stripe' ) ) . "' />";
+	$form .= '</div></form>';
 
 	return $form;
 }
@@ -440,19 +447,39 @@ add_action( 'wp_enqueue_scripts', 'mt_stripe_enqueue_scripts' );
 function mt_stripe_enqueue_scripts() {
 	$options = array_merge( mt_default_settings(), get_option( 'mt_settings' ) );
 	$page    = $options['mt_purchase_page'];
+	global $mt_stripe_version;
 	if ( is_singular() ) {
-		$stripe_options = $options['mt_gateways']['stripe'];
-		// check if we are using test mode.
-		if ( isset( $stripe_options['test_mode'] ) && 'true' == $stripe_options['test_mode'] ) {
-			$publishable = trim( $stripe_options['test_public'] );
-		} else {
-			$publishable = trim( $stripe_options['prod_public'] );
+		$stripe_options = isset( $options['mt_gateways']['stripe'] ) ? $options['mt_gateways']['stripe'] : array();
+		if ( ! empty( $stripe_options ) ) {
+			// check if we are using test mode.
+			if ( isset( $stripe_options['test_mode'] ) && 'true' == $stripe_options['test_mode'] ) {
+				$publishable = trim( $stripe_options['test_public'] );
+			} else {
+				$publishable = trim( $stripe_options['prod_public'] );
+			}
+			wp_enqueue_style( 'mt.stripe.css', plugins_url( 'css/stripe.css', __FILE__ ) );
+			wp_enqueue_script( 'jquery' );
+			wp_enqueue_script( 'stripe', 'https://js.stripe.com/v3/' );
+			wp_enqueue_script( 'mt.stripe', plugins_url( 'js/stripe.js', __FILE__ ), array( 'jquery' ), $mt_stripe_version, true );
+			$return_url = add_query_arg(
+				array(
+					'response_code' => 'thanks',
+					'gateway'       => 'stripe',
+					'payment_id'    => $payment_id,
+				),
+				get_permalink( $options['mt_purchase_page'] )
+			);
+			wp_localize_script(
+				'mt.stripe',
+				'mt_stripe', 
+				array( 
+					'publishable_key'     => $publishable,
+					'currency'            => $options['mt_currency'],
+					'purchase_descriptor' => __( 'Ticket Order', 'my-tickets-stripe' );
+					'return_url'          => $return_url,
+				)
+			);
 		}
-		wp_enqueue_style( 'mt.stripe.css', plugins_url( 'css/stripe.css', __FILE__ ) );
-		wp_enqueue_script( 'jquery' );
-		wp_enqueue_script( 'stripe', 'https://js.stripe.com/v3/' );
-		wp_enqueue_script( 'mt.stripe', plugins_url( 'js/stripe.js', __FILE__ ), array( 'jquery' ) );
-		wp_localize_script( 'mt.stripe', 'mt_stripe', array( 'publishable_key' => $publishable ) );
 	}
 }
 
