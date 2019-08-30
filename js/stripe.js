@@ -4,6 +4,7 @@
 	var stripe = Stripe( mt_stripe.publishable_key );
 	var elements = stripe.elements();
 	var amount = parseFloat( $( '.mt_cart_total .mt_total_number .price' ).text() ) * 100;
+	var payment_id = $( 'input[name=payment_id]' ).val();
 
 	var cardExists = document.getElementById( 'mt-card-element' );
 	if ( cardExists !== null ) {
@@ -97,7 +98,7 @@
 				},
 				// Specify the URL to which the customer should be redirected after paying.
 				redirect: {
-					return_url: mt_stripe.return_url,
+					return_url: mt_stripe.return_url.replace( '%d', payment_id ),
 				},
 			};
 

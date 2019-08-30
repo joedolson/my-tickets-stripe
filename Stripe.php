@@ -463,7 +463,7 @@ function mt_stripe_enqueue_scripts() {
 				array(
 					'response_code' => 'thanks',
 					'gateway'       => 'stripe',
-					'payment_id'    => $payment_id,
+					'payment_id'    => '%d',
 				),
 				get_permalink( $options['mt_purchase_page'] )
 			);
