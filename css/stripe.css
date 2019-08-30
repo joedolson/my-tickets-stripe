@@ -1,23 +1,25 @@
-.payment-errors.active {
-	padding: .5em;
-	margin: .5em 0;
-	background: #ffd;
-	border: 1px solid #900;
+.StripeElement, #mt-payment-form .stripe input {
+	padding: 10px;
+	border: 1px solid #777;
+	margin: .25em 0 1em;
+	border-radius: 5px;
+	width: calc( 100% - 20px );
+}
+
+.StripeElement--focus {
+	border: 1px solid #111;
+	background: #f6f6f6;
+	color: #000;
+}
+
+.SelectListItem {
+	padding: 4px;
+}
+
+.SelectListItem--selected {
+	background: rgba( 0,0,0,.05 );
+}
+
+#mt-payment-form .stripe label {
 	display: block;
-}
-
-.payment-errors {
-	display: none;
-}
-
-.mt-payment-form #my-tickets-stripe-payment-form select.card-expiry-month, 
-.mt-payment-form #my-tickets-stripe-payment-form select.card-expiry-year {
-	width: 6em;
-}
-.mt-payment-form #my-tickets-stripe-payment-form input.card-cvc {
-	width: 4em;
-}
-
-.mt-payment-form .section > fieldset {
-	padding: 1em 0;
 }
