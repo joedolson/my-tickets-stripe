@@ -473,7 +473,7 @@ function mt_stripe_enqueue_scripts() {
 				array( 
 					'publishable_key'     => $publishable,
 					'currency'            => $options['mt_currency'],
-					'purchase_descriptor' => __( 'Ticket Order', 'my-tickets-stripe' );
+					'purchase_descriptor' => __( 'Ticket Order', 'my-tickets-stripe' ),
 					'return_url'          => $return_url,
 				)
 			);
