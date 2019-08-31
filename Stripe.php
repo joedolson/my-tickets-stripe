@@ -487,9 +487,9 @@ add_action( 'init', 'my_tickets_stripe_process_payment' );
  */
 function my_tickets_stripe_process_payment() {
 	if ( isset( $_POST['_mt_action']) && 'stripe' == $_POST['_mt_action'] && wp_verify_nonce( $_POST['_wp_stripe_nonce'], 'my-tickets-stripe' ) ) {
-		// load the stripe libraries
+		// load the stripe libraries if not already loaded.
 		if ( ! class_exists( 'Stripe' ) ) {
-			require_once( 'lib/Stripe.php' );
+			require_once( 'stripe-php/init.php' );
 		}
 
  		$options        = array_merge( mt_default_settings(), get_option( 'mt_settings' ) );
@@ -524,8 +524,8 @@ function my_tickets_stripe_process_payment() {
 		$statement_descriptor = strtoupper( substr( sanitize_text_field( str_replace( $remove, '', get_bloginfo( 'name' ) ) ), 0, 22 ) );
 		// attempt to charge the customer's card.
 		try {
-			Stripe::setApiKey( $secret_key );
-			$charge = Stripe_Charge::create( array(
+			\Stripe\Stripe::setApiKey( $secret_key );
+			$charge = \Stripe\Charge::create( array(
 					'amount'               => $amount,
 					'currency'             => $options['mt_currency'],
 					'card'                 => $token,
