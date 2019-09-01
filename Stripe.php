@@ -368,10 +368,16 @@ function mt_gateway_stripe( $form, $gateway, $args ) {
 function mt_stripe_form( $url, $payment_id, $total, $args, $method = 'stripe' ) {
 	$options = array_merge( mt_default_settings(), get_option( 'mt_settings' ) );
 	// The form only displays after a POST request, and these fields are required.
-	$name    = $_POST['mt_fname'] . ' ' . $_POST['mt_lname'];
-	$email   = $_POST['mt_email'];
-	
-	$form  = '<form id="mt-payment-form" action="/charge" method="post"><div class="stripe">';
+	$name  = $_POST['mt_fname'] . ' ' . $_POST['mt_lname'];
+	$email = $_POST['mt_email'];
+	$nonce = wp_create_nonce( 'my-tickets-stripe' );
+
+	$form  = '<form id="mt-payment-form" action="/charge" method="post">
+	<div class="mt-stripe-hidden-fields">
+		<input type="hidden" name="_wp_stripe_nonce" value="' . $nonce . '" />
+		<input type="hidden name="_mt_actcion" value="' . $method . '" />
+	</div>
+	<div class="stripe">';
 	// Hidden form fields
 	$form .= "<input type='hidden' name='payment_id' value='" . esc_attr( $payment_id ) . "' />
 		<input type='hidden' name='amount' value='$total' />";
