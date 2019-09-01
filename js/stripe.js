@@ -80,7 +80,7 @@
 		// Add an instance of the idealBank Element into the `ideal-bank-element` <div>.
 		idealBank.mount('#mt-ideal-bank-element');
 
-		var errorMessage = document.getElementById('mt-error-message');
+		var errorMessage = document.getElementById('mt-ideal-errors');
 
 		// Create a source or display an error when the form is submitted.
 		var form = document.getElementById('mt-payment-form');
@@ -142,7 +142,7 @@
 		// Add an instance of the iban Element into the `iban-element` <div>.
 		iban.mount('#mt-iban-element');
 
-		var errorMessage = document.getElementById('mt-error-message');
+		var errorMessage = document.getElementById('mt-iban-errors');
 		var bankName = document.getElementById('bank-name');
 
 		iban.on('change', function(event) {
@@ -156,7 +156,7 @@
 
 			// Display bank name corresponding to IBAN, if available.
 			if (event.bankName) {
-				bankName.textContent = event.bankName;
+				bankName.textContent = mt_stripe.selected + ': ' + event.bankName;
 				bankName.classList.add('visible');
 			} else {
 				bankName.classList.remove('visible');
@@ -164,12 +164,13 @@
 		});
 
 		var form = document.getElementById('mt-payment-form');
+		console.log( form );
 		form.addEventListener('submit', function(event) {
 			event.preventDefault();
 
 			var sourceData = {
 				type: 'sepa_debit',
-				currency: 'eur',
+				currency: mt_stripe.currency,
 				owner: {
 					name: document.querySelector('input[name="name"]').value,
 					email: document.querySelector('input[name="email"]').value,
@@ -185,7 +186,7 @@
 			stripe.createSource(iban, sourceData).then(function(result) {
 				if (result.error) {
 					// Inform the customer that there was an error.
-					var errorElement = document.getElementById('mt-error-message');
+					var errorElement = document.getElementById('mt-iban-errors');
 					errorElement.textContent = result.error.message;
 				} else {
 					// Send the Source to your server.
