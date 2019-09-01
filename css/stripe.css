@@ -23,3 +23,24 @@
 #mt-payment-form .stripe label {
 	display: block;
 }
+
+.mt-stripe-errors, #bank-name {
+	display: none;
+}
+
+.mt-stripe-errors.visible, #bank-name.visible {
+	border: 2px solid;
+	padding: .75em;
+	border-radius: 5px;
+	margin: .5em 0;
+	background: #f6f6f6;
+	color: #000;
+	font-weight: 600;
+	display: block;
+}
+
+#bank-name.visible {
+	border: none;
+	color: inherit;
+	background: inherit;
+}

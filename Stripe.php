@@ -384,7 +384,7 @@ function mt_stripe_form( $url, $payment_id, $total, $args, $method = 'stripe' ) 
 	$form .= apply_filters( 'mt_stripe_form', '', 'stripe', $args );
 	if ( 'stripe' == $method ) {
 		$form .= "<div id='mt-card'>
-				<div id='mt-card-errors' role='alert'></div>
+				<div id='mt-card-errors' class='mt-stripe-errors' role='alert'></div>
 				<div class='form-row'>
 					<label for='mt-card-element'>" . __( 'Credit or debit card', 'my-tickets-stripe' ) . "</label>
 					<div id='mt-card-element'></div>
@@ -394,7 +394,7 @@ function mt_stripe_form( $url, $payment_id, $total, $args, $method = 'stripe' ) 
 	if ( 'iban' == $method ) {
 		$form .= '
 			<div id="mt-iban">
-				<div id="mt-iban-errors" role="alert"></div>
+				<div id="mt-iban-errors" class="mt-stripe-errors" role="alert"></div>
 				<div class="form-row inline">
 					<div class="col">
 					  <label for="name">' . __( 'Name', 'my-tickets-stripe' ) . '</label><input id="name" name="name" value="' . esc_attr( $name ) . '" required>
@@ -424,7 +424,7 @@ function mt_stripe_form( $url, $payment_id, $total, $args, $method = 'stripe' ) 
 	if ( 'ideal' == $method ) {
 		$form .= '
 			<div id="mt-ideal">
-				<div id="mt-iban-errors" role="alert"></div>
+				<div id="mt-ideal-errors" class="mt-stripe-errors" role="alert"></div>
 				<div class="form-row">
 					<label for="name">' . __( 'Name', 'my-tickets-stripe' ) . '</label>
 					<input id="name" name="name" value="' . esc_attr( $name ) . '" required>
@@ -481,6 +481,7 @@ function mt_stripe_enqueue_scripts() {
 					'currency'            => $options['mt_currency'],
 					'purchase_descriptor' => __( 'Ticket Order', 'my-tickets-stripe' ),
 					'return_url'          => $return_url,
+					'selected'            => __( 'Selected', 'my-tickets-stripe' ),
 				)
 			);
 		}
