@@ -409,7 +409,7 @@ function mt_stripe_form( $url, $payment_id, $total, $args, $method = 'stripe' ) 
 					  <!-- A Stripe Element will be inserted here. -->
 					</div>
 				</div>
-				<div id="bank-name"></div>
+				<div id="bank-name" role="alert"></div>
 				<div id="mandate-acceptance">
 					<p>' . __( 'By providing your IBAN and confirming this payment, you are
 					authorizing Rocketship Inc. and Stripe, our payment service
