@@ -122,8 +122,8 @@ function mt_stripe_ipn() {
 				// to verify this is a real event, we re-retrieve the event from Stripe.
 				$event      = Stripe_Event::retrieve( $event_id );
 				$charge     = $event->data->object;
-				$email      = $charge->metadata->email;
 				$payment_id = $charge->metadata->payment_id;
+				$email      = get_post_meta( $payment_id, '_email', true );
 
 				// successful payment.
 				if ( 'charge.refunded' == $event->type ) {
@@ -532,7 +532,6 @@ function my_tickets_stripe_process_payment() {
 					'description'          => sprintf( __( 'Tickets Purchased from %s', 'my-tickets-stripe' ), get_bloginfo( 'name' ) ),
 					'statement_descriptor' => $statement_descriptor,
 					'metadata'             => array(
-						'email'      => $payer_email,
 						'payment_id' => $payment_id,
 					),
 				)
