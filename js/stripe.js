@@ -34,10 +34,23 @@
 		
 		// Create a token or display an error when the form is submitted.
 		var form = document.getElementById('mt-payment-form');
+		var ownerInfo = {
+			owner: {
+				name: document.getElementById( 'mt_name' ).value,
+				address: {
+					line1: document.getElementById( 'address1' ).value,
+					line2: document.getElementById( 'address2' ).value,
+					city: document.getElementById( 'card_city' ).value,
+					postal_code: document.getElementById( 'card_zip' ).value,
+					country: document.getElementById( 'card_country' ).value,
+				},
+				email: document.getElementById( 'mt_email' ).value
+			},
+		};
 		form.addEventListener('submit', function(event) {
 			event.preventDefault();
 
-			stripe.createToken(card).then(function(result) {
+			stripe.createSource(card,ownerInfo).then(function(result) {
 				if (result.error) {
 					// Inform the customer that there was an error.
 					var errorElement = document.getElementById('mt-card-errors');
@@ -45,18 +58,18 @@
 					errorElement.classList.add('visible');
 				} else {
 					// Send the token to your server.
-					stripeTokenHandler(result.token);
+					stripeSourceHandler(result.source);
 				}
 			});
 		});
 
-		function stripeTokenHandler(token) {
-			// Insert the token ID into the form so it gets submitted to the server
+		function stripeSourceHandler(source) {
+			// Insert the source ID into the form so it gets submitted to the server
 			var form = document.getElementById('mt-payment-form');
 			var hiddenInput = document.createElement('input');
 			hiddenInput.setAttribute('type', 'hidden');
-			hiddenInput.setAttribute('name', 'stripeToken');
-			hiddenInput.setAttribute('value', token.id);
+			hiddenInput.setAttribute('name', 'stripeSource');
+			hiddenInput.setAttribute('value', source.id);
 			form.appendChild(hiddenInput);
 
 			// Submit the form
@@ -197,6 +210,7 @@
 		});
 
 		function stripeSourceHandler(source) {
+			console.log( source );
 			// Insert the Source ID into the form so it gets submitted to the server.
 			var form = document.getElementById('mt-payment-form');
 			var hiddenInput = document.createElement('input');
