@@ -24,7 +24,7 @@
 		card.mount('#mt-card-element');
 		
 		card.addEventListener('change', function(event) {
-			var displayError = document.getElementById('card-errors');
+			var displayError = document.getElementById('mt-card-errors');
 			if (event.error) {
 				displayError.textContent = event.error.message;
 			} else {
@@ -42,6 +42,7 @@
 					// Inform the customer that there was an error.
 					var errorElement = document.getElementById('mt-card-errors');
 					errorElement.textContent = result.error.message;
+					errorElement.classList.add('visible');
 				} else {
 					// Send the token to your server.
 					stripeTokenHandler(result.token);
@@ -92,7 +93,6 @@
 				type: 'ideal',
 				amount: amount,
 				currency: mt_stripe.currency,
-				statement_descriptor: mt_stripe.purchase_descriptor + ' #' + purchase_id,
 				owner: {
 					name: document.querySelector('input[name="name"]').value,
 				},
@@ -107,8 +107,9 @@
 			stripe.createSource(idealBank, sourceData).then(function(result) {
 				if (result.error) {
 					// Inform the customer that there was an error.
-					var errorElement = document.getElementById('error-message');
-					errorElement.textContent = error.message;
+					var errorElement = document.getElementById('mt-ideal-errors');
+					errorElement.textContent = result.error.message;
+					errorElement.classList.add('visible');
 				} else {
 					// Redirect the customer to the authorization URL.
 					stripeSourceHandler(result.source);
@@ -164,7 +165,6 @@
 		});
 
 		var form = document.getElementById('mt-payment-form');
-		console.log( form );
 		form.addEventListener('submit', function(event) {
 			event.preventDefault();
 
@@ -188,6 +188,7 @@
 					// Inform the customer that there was an error.
 					var errorElement = document.getElementById('mt-iban-errors');
 					errorElement.textContent = result.error.message;
+					errorElement.classList.add('visible');
 				} else {
 					// Send the Source to your server.
 					stripeSourceHandler(result.source);
