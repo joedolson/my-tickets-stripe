@@ -25,7 +25,11 @@ New or updated translations are always appreciated. The translation files are in
 
 == Changelog ==
 
+= 1.2.0 =
 
+* Update Stripe Implementation to conform to Strong Customer Authentication rules
+* Fix issue with missing shipping fields.
+* Improve customer information in Stripe admin.
 * Update plugin updater class
 
 = 1.1.5 =
