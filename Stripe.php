@@ -90,7 +90,7 @@ add_action( 'mt_receive_ipn', 'mt_stripe_ipn' );
 /**
  * Process events sent from from Stripe
  *
- * The only event this currently handles is the charge.refunded event.
+ * Handles the charge.refunded event & source.chargeable events.
  * Uses do_action( 'mt_stripe_event', $charge ) if you want custom handling.
  *
  */
@@ -105,7 +105,7 @@ function mt_stripe_ipn() {
 			$secret_key = trim( $stripe_options['prod_secret'] );
 		}
 
-		Stripe::setApiKey( $secret_key );
+		\Stripe\Stripe::setApiKey( $secret_key );
 
 		// retrieve the request's body and parse it as JSON.
 		$body = @file_get_contents( 'php://input' );
@@ -124,7 +124,7 @@ function mt_stripe_ipn() {
 				$charge     = $event->data->object;
 				$payment_id = $charge->metadata->payment_id;
 				$email      = get_post_meta( $payment_id, '_email', true );
-
+				wp_mail( 'joe@joedolson.com', 'Test Data', print_r( $event, 1 ) );
 				// successful payment.
 				if ( 'charge.refunded' == $event->type ) {
 					$details = array(
@@ -134,6 +134,41 @@ function mt_stripe_ipn() {
 					);
 					mt_send_notifications( 'Refunded', $details );
 					update_post_meta( $payment_id, '_is_paid', 'Refunded' );
+				}
+
+				if ( 'charge.succeeded' == $event->type ) {
+					$paid           = $charge->paid; // true if charge succeeded (cards)
+					$transaction_id = $charge->id;
+					$receipt_id     = get_post_meta( $payment_id, '_receipt', true ); 
+					$payment_status = 'Completed';
+					$paid           = get_post_meta( $payment_id, '_total_paid', true );
+					$payer_name     = get_the_title( $payment_id );
+					$names          = explode( ' ', $payer_name );
+					$first_name     = array_shift( $names );
+					$last_name      = implode( ' ', $names );
+
+					$price = ( mt_zerodecimal_currency() ) ? $paid : $paid / 100;
+					$data  = array(
+						'transaction_id' => $transaction_id,
+						'price'          => $price,
+						'currency'       => $options['mt_currency'],
+						'email'          => $email,
+						'first_name'     => $first_name, // get from charge.
+						'last_name'      => $last_name, // get from charge.
+						'status'         => $payment_status,
+						'purchase_id'    => $payment_id,
+						'shipping'       => $address, // will need to get this from charge
+					);
+					mt_handle_payment( 'VERIFIED', '200', $data, $_REQUEST );
+				}
+
+				if ( 'source.chargeable' == $event->type ) {
+					wp_mail( 'joe@joedolson.com', 'Test Chargeable Event', print_r( $event, 1 ) );
+					$charge = \Stripe\Charge::create([
+						'amount' => 1099,
+						'currency' => 'eur',
+						'source' => 'src_18eYalAHEMiOZZp1l9ZTjSU0',
+					]);
 				}
 
 				do_action( 'mt_stripe_event', $charge );
@@ -303,12 +338,12 @@ function mt_stripe_messages( $message, $code ) {
 	if ( isset( $_GET['gateway'] ) && 'stripe' == $_GET['gateway'] || 'ideal' == $_GET['gateway'] || 'iban' == $_GET['gateway'] ) {
 		$options = array_merge( mt_default_settings(), get_option( 'mt_settings' ) );
 		if ( 1 == $code || 'thanks' == $code ) {
-			$receipt_id     = sanitize_text_field( $_GET['receipt_id'] );
-			$transaction_id = sanitize_text_field( $_GET['transaction_id'] );
+			$payment_id     = absint( $_GET['payment_id'] );
+			$receipt_id     = get_post_meta( $payment_id, '_receipt', true );
 			$receipt        = esc_url( add_query_arg( array( 'receipt_id' => $receipt_id ), get_permalink( $options['mt_receipt_page'] ) ) );
 
 			// Translators: Transaction ID from Stripe, URL to view receipt.
-			return sprintf( __( 'Thank you for your purchase! Your Stripe transaction id is <code>#%1$s</code>. <a href="%2$s">View your receipt</a>', 'my-tickets-stripe' ), $transaction_id, $receipt );
+			return sprintf( __( 'Thank you for your purchase! <a href="%s">View your receipt</a>', 'my-tickets-stripe' ), $receipt );
 		} else {
 			$reason = isset( $_GET['reason'] ) ? stripslashes( urldecode( $_GET['reason'] ) ) : __( 'Unknown failure.', 'my-tickets-stripe' );
 			// Translators: Error message from Stripe.
@@ -438,7 +473,38 @@ function mt_stripe_form( $url, $payment_id, $total, $args, $method = 'stripe' ) 
 				</div>
 			</div>';
 	}
+	$form .= '<div class="address section">
+		<fieldset>
+		<legend>' . __( 'Billing Address', 'my-tickets-stripe' ) . '</legend>
+			<div class="form-row">
+				<label for="address1">' . __( 'Address (1)', 'my-tickets-stripe' ) . '</label>
+				<input type="text" id="address1" name="card_address" class="card-address" />
+			</div>
+			<div class="form-row">
+				<label for="address2">' . __( 'Address (2)', 'my-tickets-stripe' ) . '</label>
+				<input type="text" id="address2" name="card_address_2" class="card-address-2" />
+			</div>
+			<div class="form-row">
+				<label for="card_city">' . __( 'City', 'my-tickets-stripe' ) . '</label>
+				<input type="text" id="card_city" name="card_city" class="card-city" />
+			</div>
+			<div class="form-row">
+				<label for="card_zip">' . __( 'Zip / Postal Code', 'my-tickets-stripe' ) . '</label>
+				<input type="text" id="card_zip" name="card_zip" class="card-zip" />
+			</div>
+			<div class="form-row">
+				<label for="card_country">' . __( 'Country', 'my-tickets-stripe' ) . '</label>
+				<input type="text" id="card_country" name="card_country" class="card-country" />
+			</div>
+			<div class="form-row">
+				<label for="card_state">' . __( 'State', 'my-tickets-stripe' ) . '</label>
+				<input type="text" id="card_state" name="card_state" class="card-state" />
+			</div>
+		</fieldset>
+		</div>';
+	$form .= mt_render_field( 'address', 'stripe' );
 	$form .= "<input type='submit' name='stripe_submit' id='mt-stripe-submit' class='button button-primary' value='" . esc_attr( apply_filters( 'mt_gateway_button_text', __( 'Pay Now', 'my-tickets' ), 'stripe' ) ) . "' />";
+	$form .= apply_filters( 'mt_stripe_form', '', 'stripe', $args );
 	$form .= '</div></form>';
 
 	return $form;
@@ -495,7 +561,9 @@ add_action( 'init', 'my_tickets_stripe_process_payment' );
 function my_tickets_stripe_process_payment() {
 	if ( isset( $_POST['_mt_action'] ) ) {
 		if ( wp_verify_nonce( $_POST['_wp_stripe_nonce'], 'my-tickets-stripe' ) ) {
-			
+			$method = $_POST['_mt_action'];
+			$data   = array();
+
 			// load the stripe libraries if not already loaded.
 			if ( ! class_exists( 'Stripe' ) ) {
 				require_once( 'stripe-php/init.php' );
@@ -535,7 +603,7 @@ function my_tickets_stripe_process_payment() {
 				$address = array();
 			}
 			// Handle Card charges
-			if ( isset( $_POST['_mt_action']) && 'stripe' == $_POST['_mt_action'] ) {
+			if ( 'stripe' == $method ) {
 				// retrieve the token generated by stripe.js.
 				$token       = $_POST['stripeToken'];
 				// compare amounts from payment and from passage.
@@ -562,7 +630,7 @@ function my_tickets_stripe_process_payment() {
 
 					$paid           = $charge->paid; // true if charge succeeded.
 					$transaction_id = $charge->id;
-					$receipt_id     = get_post_meta( $payment_id, '_receipt', true ); // where does that come from.
+					$receipt_id     = get_post_meta( $payment_id, '_receipt', true ); 
 
 					$payment_status = 'Completed';
 					$redirect       = mt_replace_http( esc_url_raw( add_query_arg( array(
@@ -589,7 +657,7 @@ function my_tickets_stripe_process_payment() {
 			}
 
 			// Handle iBAN charges
-			if ( isset( $_POST['_mt_action']) && 'iban' == $_POST['_mt_action'] ) {
+			if ( 'iban' == $method ) {
 				try {
 					\Stripe\Stripe::setApiKey( $secret_key );
 					$source = \Stripe\Source::create([
