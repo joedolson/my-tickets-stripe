@@ -300,31 +300,6 @@ function mt_stripe_shipping_fields( $form, $gateway ) {
 	return $form;
 }
 
-add_filter( 'mt_format_transaction', 'mt_stripe_transaction', 10, 2 );
-/**
- * Alter return value of transactions if using stripe.
- *
- * @param array  $transaction Transaction data.
- * @param string $gateway Current gateway.
- *
- * @return array $transaction.
- */
-function mt_stripe_transaction( $transaction, $gateway ) {
-	if ( 'stripe' == $gateway ) {
-		// alter return value if desired.
-	}
-
-	if ( 'iban' == $gateway ) {
-		// iban gateway
-	}
-
-	if ( 'ideal' == $gateway ) {
-		// ideal gateway
-	}
-
-	return $transaction;
-}
-
 add_filter( 'mt_response_messages', 'mt_stripe_messages', 10, 2 );
 /*
  * Feeds custom response messages to return page (cart)
@@ -599,14 +574,14 @@ function my_tickets_stripe_process_payment() {
 			$amount      = ( mt_zerodecimal_currency() ) ? $paid : $paid * 100;
 			$passed      = $_POST['amount'];
 			// Get shipping info if provided.
-			if ( isset( $_POST['mt_shipping_street'] ) ) {
+			if ( isset( $_POST['x_ship_to_address'] ) ) {
 				$address = array(
-					'street'  => isset( $_POST['mt_shipping_street'] ) ? $_POST['mt_shipping_street'] : '',
-					'street2' => isset( $_POST['mt_shipping_street2'] ) ? $_POST['mt_shipping_street2'] : '',
-					'city'    => isset( $_POST['mt_shipping_city'] ) ? $_POST['mt_shipping_city'] : '',
-					'state'   => isset( $_POST['mt_shipping_state'] ) ? $_POST['mt_shipping_state'] : '',
-					'country' => isset( $_POST['mt_shipping_code'] ) ? $_POST['mt_shipping_code'] : '',
-					'code'    => isset( $_POST['mt_shipping_country'] ) ? $_POST['mt_shipping_country'] : '',
+					'street'  => isset( $_POST['x_ship_to_address'] ) ? $_POST['x_ship_to_address'] : '',
+					'street2' => isset( $_POST['x_ship_to_address2'] ) ? $_POST['x_ship_to_address2'] : '',
+					'city'    => isset( $_POST['x_ship_to_city'] ) ? $_POST['x_ship_to_city'] : '',
+					'state'   => isset( $_POST['x_ship_to_state'] ) ? $_POST['x_ship_to_state'] : '',
+					'country' => isset( $_POST['x_ship_to_zip'] ) ? $_POST['x_ship_to_zip'] : '',
+					'code'    => isset( $_POST['x_ship_to_country'] ) ? $_POST['x_ship_to_country'] : '',
 				);
 			} else {
 				$address = array();
@@ -746,10 +721,6 @@ function my_tickets_stripe_process_payment() {
 					'shipping'       => $address,
 				);
 			}
-			
-			print_r( $data );
-			print_r( $_REQUEST );
-			die;
 
 			mt_handle_payment( 'VERIFIED', '200', $data, $_REQUEST );
 
