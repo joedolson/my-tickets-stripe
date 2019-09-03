@@ -476,30 +476,33 @@ function mt_stripe_form( $url, $payment_id, $total, $args, $method = 'stripe' ) 
 	$form .= '<div class="address section">
 		<fieldset>
 		<legend>' . __( 'Billing Address', 'my-tickets-stripe' ) . '</legend>
-			<div class="form-row">
-				<label for="address1">' . __( 'Address (1)', 'my-tickets-stripe' ) . '</label>
+			<p class="form-row">
+				<label for="address1">' . __( 'Street', 'my-tickets-stripe' ) . '</label>
 				<input type="text" id="address1" name="card_address" class="card-address" />
-			</div>
-			<div class="form-row">
-				<label for="address2">' . __( 'Address (2)', 'my-tickets-stripe' ) . '</label>
+			</p>
+			<p class="form-row">
+				<label for="address2">' . __( 'Street (2)', 'my-tickets-stripe' ) . '</label>
 				<input type="text" id="address2" name="card_address_2" class="card-address-2" />
-			</div>
-			<div class="form-row">
+			</p>
+			<p class="form-row">
 				<label for="card_city">' . __( 'City', 'my-tickets-stripe' ) . '</label>
 				<input type="text" id="card_city" name="card_city" class="card-city" />
-			</div>
-			<div class="form-row">
-				<label for="card_zip">' . __( 'Zip / Postal Code', 'my-tickets-stripe' ) . '</label>
-				<input type="text" id="card_zip" name="card_zip" class="card-zip" />
-			</div>
-			<div class="form-row">
-				<label for="card_country">' . __( 'Country', 'my-tickets-stripe' ) . '</label>
-				<input type="text" id="card_country" name="card_country" class="card-country" />
-			</div>
-			<div class="form-row">
-				<label for="card_state">' . __( 'State', 'my-tickets-stripe' ) . '</label>
+			</p>
+			<p class="form-row">
+				<label for="card_state">' . __( 'State/Province', 'my-tickets-stripe' ) . '</label>
 				<input type="text" id="card_state" name="card_state" class="card-state" />
-			</div>
+			</p>
+			<p class="form-row">
+				<label for="card_zip">' . __( 'Postal Code', 'my-tickets-stripe' ) . '</label>
+				<input type="text" id="card_zip" name="card_zip" class="card-zip" />
+			</p>
+			<p class="form-row">
+				<label for="card_country">' . __( 'Country', 'my-tickets-stripe' ) . '</label>
+					<select name="card_country" id="card_country" class="mt_country">
+					<option value="">Select Country</option>
+					' . mt_shipping_country() . '
+					</select>
+			</p>
 		</fieldset>
 		</div>';
 	$form .= mt_render_field( 'address', 'stripe' );
