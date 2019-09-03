@@ -6,6 +6,11 @@
 	width: calc( 100% - 20px );
 }
 
+#mt-stripe-submit:focus, #mt-stripe-submit:hover {
+	border: 1px solid #000;
+	background: #e0e0e0;
+}
+
 .StripeElement--focus {
 	border: 1px solid #111;
 	background: #f6f6f6;
