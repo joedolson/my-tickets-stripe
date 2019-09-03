@@ -251,6 +251,8 @@ function mt_setup_stripe( $gateways ) {
 		'note' => sprintf( __( 'To enable automatic refund processing, add <code>%s</code> as a Webhook URL in your Stripe account at Stripe > Dashboard > Settings > Webhooks.', 'my-tickets-stripe' ), add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) ),
 	);
 
+/**
+ * Needs further work; take live when completed.
 	$gateways['iban'] = array(
 		'label'    => __( 'IBAN', 'my-tickets-stripe' ),
 		'selector' => __( 'Gateway selector label', 'my-tickets-stripe' ),
@@ -262,7 +264,7 @@ function mt_setup_stripe( $gateways ) {
 		'selector' => __( 'Gateway selector label', 'my-tickets-stripe' ),
 		'note'     => __( 'There are no extra settings required to use iDEAL Bank with Stripe.', 'my-tickets-stripe' ),
 	);
-
+*/
 	return $gateways;
 }
 
