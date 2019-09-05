@@ -125,7 +125,7 @@ function mt_stripe_ipn() {
 				$payment_id = $charge->metadata->payment_id;
 				$email      = get_post_meta( $payment_id, '_email', true );
 				wp_mail( 'joe@joedolson.com', 'Test Data', print_r( $event, 1 ) );
-				// successful payment.
+				// Refund of payment.
 				if ( 'charge.refunded' == $event->type ) {
 					$details = array(
 						'id'    => $payment_id,
@@ -135,7 +135,7 @@ function mt_stripe_ipn() {
 					mt_send_notifications( 'Refunded', $details );
 					update_post_meta( $payment_id, '_is_paid', 'Refunded' );
 				}
-
+				// Successful payment.
 				if ( 'charge.succeeded' == $event->type ) {
 					$paid           = $charge->paid; // true if charge succeeded (cards)
 					$transaction_id = $charge->id;
@@ -222,6 +222,37 @@ function mt_stripe_currencies( $currencies ) {
 
 	return $currencies;
 }
+
+add_filter( 'mt_settings', 'mt_stripe_settings', 10, 2 );
+/**
+ * When settings are saved, check for Stripe keys. If added or changed, create endpoint.
+ *
+ * @param array $settings New settings.
+ * @param array $post POST data
+ * 
+ * @return settings
+ */
+function mt_stripe_settings( $settings, $post ) {
+	$new_options = array_merge( mt_default_settings(), $settings );
+	$old_options = array_merge( mt_default_settings(), get_option( 'mt_settings' ) );
+	// these all need to be set from Stripe data.
+	$nstripe_options = $new_options['mt_gateways']['stripe'];
+	$ostripe_options = $old_options['mt_gateways']['stripe'];
+
+	$secret_key = ( trim( $nstripe_options['prod_secret'] ) != trim( $ostripe_options['prod_secret'] ) ) ? trim( $nstripe_options['prod_secret'] ) : false;
+
+	if ( $secret_key ) {
+		\Stripe\Stripe::setApiKey( $secret_key );
+
+		$endpoint = \Stripe\WebhookEndpoint::create([
+			'url' => add_query_arg( 'mt_stripe_ipn', 'true', home_url() ),
+			'enabled_events' => ["*"]
+		]);
+	}
+
+	return $settings;
+}
+
 
 add_filter( 'mt_setup_gateways', 'mt_setup_stripe', 10, 1 );
 /**
