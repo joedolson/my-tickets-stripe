@@ -3,10 +3,10 @@
 
 	var stripe = Stripe( mt_stripe.publishable_key );
 	var elements = stripe.elements();
-	var amount = parseFloat( $( '.mt_cart_total .mt_total_number .price' ).text() ) * 100;
-	var payment_id = $( 'input[name=payment_id]' ).val();
-
+	var submitButton = document.getElementById( 'mt-stripe-submit' );
 	var cardExists = document.getElementById( 'mt-card-element' );
+	var payment_id = document.getElementById( 'mt-payment-id' ).value;
+
 	if ( cardExists !== null ) {
 
 		var style = {
@@ -34,194 +34,44 @@
 		
 		// Create a token or display an error when the form is submitted.
 		var form = document.getElementById('mt-payment-form');
-		var ownerInfo = {
-			owner: {
-				name: document.getElementById( 'mt_name' ).value,
-				address: {
-					line1: document.getElementById( 'address1' ).value,
-					line2: document.getElementById( 'address2' ).value,
-					city: document.getElementById( 'card_city' ).value,
-					postal_code: document.getElementById( 'card_zip' ).value,
-					country: document.getElementById( 'card_country' ).value,
-				},
-				email: document.getElementById( 'mt_email' ).value
-			},
-		};
+
 		form.addEventListener('submit', function(event) {
 			event.preventDefault();
+			var ownerInfo = {
+				payment_method_data: {
+					billing_details: {
+						name: document.getElementById( 'mt_name' ).value,
+						address: {
+							line1: document.getElementById( 'address1' ).value,
+							line2: document.getElementById( 'address2' ).value,
+							city: document.getElementById( 'card_city' ).value,
+							postal_code: document.getElementById( 'card_zip' ).value,
+							country: document.getElementById( 'card_country' ).value,
+						},
+						email: document.getElementById( 'mt_email' ).value
+					},
+				},
+			};
+			submitButton.disabled = true;
+			submitButton.value = mt_stripe.processing;
+			var clientSecret = document.getElementById( 'mt_client_secret' ).value;
+			console.log( clientSecret );
 
-			stripe.createSource(card,ownerInfo).then(function(result) {
+			stripe.handleCardPayment( clientSecret,card,ownerInfo).then(function(result) {
 				if (result.error) {
 					// Inform the customer that there was an error.
 					var errorElement = document.getElementById('mt-card-errors');
 					errorElement.textContent = result.error.message;
 					errorElement.classList.add('visible');
+					submitButton.disabled = false;
+					submitButton.value = mt_stripe.pay;
 				} else {
-					// Send the token to your server.
-					stripeSourceHandler(result.source);
+					var errorElement = document.getElementById('mt-card-errors');
+					errorElement.textContent = 'Successful Payment';
+					window.location = mt_stripe.return_url.replace( '%d', payment_id );
 				}
-			});
+			})
 		});
-
-		function stripeSourceHandler(source) {
-			// Insert the source ID into the form so it gets submitted to the server
-			var form = document.getElementById('mt-payment-form');
-			var hiddenInput = document.createElement('input');
-			hiddenInput.setAttribute('type', 'hidden');
-			hiddenInput.setAttribute('name', 'stripeSource');
-			hiddenInput.setAttribute('value', source.id);
-			form.appendChild(hiddenInput);
-
-			// Submit the form
-			form.submit();
-		}
-	}
-
-	var idealExists = document.getElementById( 'mt-ideal-bank-element' );
-	if ( idealExists !== null ) {
-
-		var style = {
-			base: {
-				// Add your base input styles here. For example:
-				fontSize: '16px',
-				color: "#32325d",
-			}
-		};
-
-		// Create an instance of the idealBank Element.
-		var idealBank = elements.create('idealBank', {style: style});
-
-		// Add an instance of the idealBank Element into the `ideal-bank-element` <div>.
-		idealBank.mount('#mt-ideal-bank-element');
-
-		var errorMessage = document.getElementById('mt-ideal-errors');
-
-		// Create a source or display an error when the form is submitted.
-		var form = document.getElementById('mt-payment-form');
-
-		form.addEventListener('submit', function(event) {
-			event.preventDefault();
-
-			var sourceData = {
-				type: 'ideal',
-				amount: amount,
-				currency: mt_stripe.currency,
-				owner: {
-					name: document.querySelector('input[name="name"]').value,
-				},
-				// Specify the URL to which the customer should be redirected after paying.
-				redirect: {
-					return_url: mt_stripe.return_url.replace( '%d', payment_id ),
-				},
-			};
-
-			// Call `stripe.createSource` with the idealBank Element and
-			// additional options.
-			stripe.createSource(idealBank, sourceData).then(function(result) {
-				if (result.error) {
-					// Inform the customer that there was an error.
-					var errorElement = document.getElementById('mt-ideal-errors');
-					errorElement.textContent = result.error.message;
-					errorElement.classList.add('visible');
-				} else {
-					// Redirect the customer to the authorization URL.
-					stripeSourceHandler(result.source);
-				}
-			});
-		});
-
-		function stripeSourceHandler(source) {
-			// Redirect the customer to the authorization URL.
-			document.location.href = source.redirect.url;
-		}
-	}
-
-	var ibanExists = document.getElementById( 'mt-iban-element' );
-	if ( ibanExists !== null ) {
-
-		var style = {
-			base: {
-				// Add your base input styles here. For example:
-				fontSize: '16px',
-				color: "#32325d",
-			}
-		};
-
-		// Create an instance of the iban Element.
-		var iban = elements.create('iban', {
-			style: style,
-			supportedCountries: ['SEPA'],
-		});
-
-		// Add an instance of the iban Element into the `iban-element` <div>.
-		iban.mount('#mt-iban-element');
-
-		var errorMessage = document.getElementById('mt-iban-errors');
-		var bankName = document.getElementById('bank-name');
-
-		iban.on('change', function(event) {
-			// Handle real-time validation errors from the iban Element.
-			if (event.error) {
-				errorMessage.textContent = event.error.message;
-				errorMessage.classList.add('visible');
-			} else {
-				errorMessage.classList.remove('visible');
-			}
-
-			// Display bank name corresponding to IBAN, if available.
-			if (event.bankName) {
-				bankName.textContent = mt_stripe.selected + ': ' + event.bankName;
-				bankName.classList.add('visible');
-			} else {
-				bankName.classList.remove('visible');
-			}
-		});
-
-		var form = document.getElementById('mt-payment-form');
-		form.addEventListener('submit', function(event) {
-			event.preventDefault();
-
-			var sourceData = {
-				type: 'sepa_debit',
-				currency: mt_stripe.currency,
-				owner: {
-					name: document.querySelector('input[name="name"]').value,
-					email: document.querySelector('input[name="email"]').value,
-				},
-				mandate: {
-					// Automatically send a mandate notification email to your customer
-					// once the source is charged.
-					notification_method: 'email',
-				},
-			};
-
-			// Call `stripe.createSource` with the IBAN Element and additional options.
-			stripe.createSource(iban, sourceData).then(function(result) {
-				if (result.error) {
-					// Inform the customer that there was an error.
-					var errorElement = document.getElementById('mt-iban-errors');
-					errorElement.textContent = result.error.message;
-					errorElement.classList.add('visible');
-				} else {
-					// Send the Source to your server.
-					stripeSourceHandler(result.source);
-				}
-			});
-		});
-
-		function stripeSourceHandler(source) {
-			console.log( source );
-			// Insert the Source ID into the form so it gets submitted to the server.
-			var form = document.getElementById('mt-payment-form');
-			var hiddenInput = document.createElement('input');
-			hiddenInput.setAttribute('type', 'hidden');
-			hiddenInput.setAttribute('name', 'stripeSource');
-			hiddenInput.setAttribute('value', source.id);
-			form.appendChild(hiddenInput);
-
-			// Submit the form.
-			form.submit();
-		}
 	}
 
 }(jQuery));
