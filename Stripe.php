@@ -85,104 +85,8 @@ if ( class_exists( 'EDD_SL_Plugin_Updater' ) ) { // prevent fatal error if doesn
  * @package Stripe
  */
 require_once( 'stripe-php/init.php' );
-
-add_action( 'mt_receive_ipn', 'mt_stripe_ipn' );
-/**
- * Process events sent from from Stripe
- *
- * Handles the charge.refunded event & source.chargeable events.
- * Uses do_action( 'mt_stripe_event', $charge ) if you want custom handling.
- *
- */
-function mt_stripe_ipn() {
-	if ( isset( $_REQUEST['mt_stripe_ipn'] ) && 'true' == $_REQUEST['mt_stripe_ipn'] ) {
-		$options = array_merge( mt_default_settings(), get_option( 'mt_settings' ) );
-		// these all need to be set from Stripe data.
-		$stripe_options = $options['mt_gateways']['stripe'];
-		if ( isset( $stripe_options['test_mode'] ) && 'true' == $stripe_options['test_mode'] ) {
-			$secret_key = trim( $stripe_options['test_secret'] );
-		} else {
-			$secret_key = trim( $stripe_options['prod_secret'] );
-		}
-
-		\Stripe\Stripe::setApiKey( $secret_key );
-
-		// retrieve the request's body and parse it as JSON.
-		$body = @file_get_contents( 'php://input' );
-
-		// grab the event information.
-		$event_json = json_decode( $body );
-
-		// this will be used to retrieve the event from Stripe.
-		$event_id = $event_json->id;
-
-		if ( isset( $event_json->id ) ) {
-
-			try {
-				// to verify this is a real event, we re-retrieve the event from Stripe.
-				$event      = Stripe_Event::retrieve( $event_id );
-				$charge     = $event->data->object;
-				$payment_id = $charge->metadata->payment_id;
-				$email      = get_post_meta( $payment_id, '_email', true );
-				wp_mail( 'joe@joedolson.com', 'Test Data', print_r( $event, 1 ) );
-				// Refund of payment.
-				if ( 'charge.refunded' == $event->type ) {
-					$details = array(
-						'id'    => $payment_id,
-						'name'  => get_the_title( $payment_id ),
-						'email' => get_post_meta( $payment_id, '_email', true ),
-					);
-					mt_send_notifications( 'Refunded', $details );
-					update_post_meta( $payment_id, '_is_paid', 'Refunded' );
-				}
-				// Successful payment.
-				if ( 'charge.succeeded' == $event->type ) {
-					$paid           = $charge->paid; // true if charge succeeded (cards)
-					$transaction_id = $charge->id;
-					$receipt_id     = get_post_meta( $payment_id, '_receipt', true ); 
-					$payment_status = 'Completed';
-					$paid           = get_post_meta( $payment_id, '_total_paid', true );
-					$payer_name     = get_the_title( $payment_id );
-					$names          = explode( ' ', $payer_name );
-					$first_name     = array_shift( $names );
-					$last_name      = implode( ' ', $names );
-
-					$price = ( mt_zerodecimal_currency() ) ? $paid : $paid / 100;
-					$data  = array(
-						'transaction_id' => $transaction_id,
-						'price'          => $price,
-						'currency'       => $options['mt_currency'],
-						'email'          => $email,
-						'first_name'     => $first_name, // get from charge.
-						'last_name'      => $last_name, // get from charge.
-						'status'         => $payment_status,
-						'purchase_id'    => $payment_id,
-						'shipping'       => $address, // will need to get this from charge
-					);
-					mt_handle_payment( 'VERIFIED', '200', $data, $_REQUEST );
-				}
-
-				if ( 'source.chargeable' == $event->type ) {
-					wp_mail( 'joe@joedolson.com', 'Test Chargeable Event', print_r( $event, 1 ) );
-					$charge = \Stripe\Charge::create([
-						'amount' => 1099,
-						'currency' => 'eur',
-						'source' => 'src_18eYalAHEMiOZZp1l9ZTjSU0',
-					]);
-				}
-
-				do_action( 'mt_stripe_event', $charge );
-
-			} catch ( Exception $e ) {
-				if ( function_exists( 'mt_log_error' ) ) {
-					mt_log_error( $e );
-				}
-			}
-		}
-	}
-
-	return;
-}
+require_once( 'mt-stripe-ipn.php' );
+require_once( 'mt-stripe-ajax.php' );
 
 /**
  * Return all currencies supported by Stripe.
@@ -415,15 +319,36 @@ function mt_stripe_form( $url, $payment_id, $total, $args, $method = 'stripe' ) 
 	$email = $_POST['mt_email'];
 	$nonce = wp_create_nonce( 'my-tickets-stripe' );
 
+	$stripe_options = $options['mt_gateways']['stripe'];
+	$purchase_page  = get_permalink( $options['mt_purchase_page'] );
+
+	// check if we are using test mode
+	if ( isset( $stripe_options['test_mode'] ) && 'true' == $stripe_options['test_mode'] ) {
+		$secret_key = trim( $stripe_options['test_secret'] );
+	} else {
+		$secret_key = trim( $stripe_options['prod_secret'] );
+	}
+	$remove = array( '<', '>', '"', '\'' );
+
+	\Stripe\Stripe::setApiKey( $secret_key );
+	$intent = \Stripe\PaymentIntent::create([
+		'amount'               => $total,
+		'currency'             => $options['mt_currency'],
+		'payment_method_types' => ['card'],
+		'statement_descriptor' => strtoupper( substr( sanitize_text_field( str_replace( $remove, '', get_bloginfo( 'name' ) ) ), 0, 22 ) ),
+		'metadata'             =>  array( 'payment_id' => $payment_id ),
+	]);
+
 	$form  = '<form id="mt-payment-form" action="/charge" method="post">
 	<div class="mt-stripe-hidden-fields">
-		<input type="hidden" name="_wp_stripe_nonce" value="' . $nonce . '" />
-		<input type="hidden" name="_mt_action" value="' . $method . '" />
+		<input type="hidden" name="_wp_stripe_nonce" value="' . esc_attr( $nonce ) . '" />
+		<input type="hidden" name="_mt_action" value="' . esc_attr( $method ) . '" />
+		<input type="hidden" name="_mt_secret" id="mt_client_secret" value="' . $intent->client_secret . '" />
+		<input type="hidden" name="payment_id" id="mt-payment-id" value="' . esc_attr( $payment_id ) . '" />
+		<input type="hidden" name="amount" value="' . esc_attr( $total ) . '" />
 	</div>
 	<div class="stripe">';
 	// Hidden form fields
-	$form .= "<input type='hidden' name='payment_id' value='" . esc_attr( $payment_id ) . "' />
-		<input type='hidden' name='amount' value='$total' />";
 	$form .= apply_filters( 'mt_stripe_form', '', 'stripe', $args );
 	if ( 'stripe' == $method ) {
 		$form .= "<div id='mt-card'>
@@ -565,6 +490,10 @@ function mt_stripe_enqueue_scripts() {
 					'purchase_descriptor' => __( 'Ticket Order', 'my-tickets-stripe' ),
 					'return_url'          => $return_url,
 					'selected'            => __( 'Selected', 'my-tickets-stripe' ),
+					'processing'          => __( 'Processing...', 'my-tickets-stripe' ),
+					'pay'                 => __( 'Pay Now', 'my-tickets-stripe' ),
+					'mt_ajax_action'      => 'mt_ajax_stripe',
+					'ajaxurl'             => admin_url( 'admin-ajax.php' ),
 				)
 			);
 		}
@@ -633,7 +562,7 @@ function my_tickets_stripe_process_payment() {
 				// attempt to charge the customer's card.
 				try {
 					\Stripe\Stripe::setApiKey( $secret_key );
-					$charge = \Stripe\Charge::create(
+					$intent = \Stripe\PaymentIntent::create(
 						array(
 							'amount'               => $amount,
 							'currency'             => $options['mt_currency'],
@@ -641,11 +570,15 @@ function my_tickets_stripe_process_payment() {
 							'description'          => sprintf( __( 'Tickets Purchased from %s', 'my-tickets-stripe' ), get_bloginfo( 'name' ) ),
 							'statement_descriptor' => $statement_descriptor,
 							'receipt_email'        => $payer_email,
+							'confirmation_method'  => 'manual',
+							'confirm'              => true,
 							'metadata'             => array(
 								'payment_id' => $payment_id,
 							),
 						)
 					);
+					
+					mt_stripe_generate_payment_response( $intent );
 
 					$paid           = $charge->paid; // true if charge succeeded.
 					$transaction_id = $charge->id;
@@ -674,7 +607,7 @@ function my_tickets_stripe_process_payment() {
 						), $purchase_page ) ) );
 				}
 			}
-
+/*
 			// Handle iBAN charges
 			if ( 'iban' == $method ) {
 				try {
@@ -725,7 +658,7 @@ function my_tickets_stripe_process_payment() {
 						), $purchase_page ) ) );
 				}
 			}
-
+*/
 			if ( 'Failed' != $payment_status ) {
 				// Handle async nature of IBAN payments; payments should show up as 'pending'.
 				$paid           = $charge->paid; // true if charge succeeded (cards)
