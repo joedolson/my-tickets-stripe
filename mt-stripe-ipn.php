@@ -56,6 +56,7 @@ function mt_stripe_ipn() {
 				// to verify this is a real event, we re-retrieve the event from Stripe.
 				$event      = \Stripe\Event::retrieve( $event_id );
 				$object     = $event->data->object->object;
+
 				switch( $object ) {
 					case 'charge':
 						$charge     = $event->data->object;
@@ -63,7 +64,7 @@ function mt_stripe_ipn() {
 						break;
 					case 'payment_intent':
 						$intent     = $event->data->object;
-						$payment_id = $event->data->metadata->payment_id;
+						$payment_id = $intent->metadata->payment_id;
 						$email      = get_post_meta( $payment_id, '_email', true );
 						break;
 					default:
@@ -78,7 +79,6 @@ function mt_stripe_ipn() {
 				status_header( 400 );
 				die();
 			}
-
 			switch( $event->type ) {
 				case 'charge.refunded':
 					$details = array(
@@ -93,16 +93,34 @@ function mt_stripe_ipn() {
 					break;
 				// Successful payment.
 				case 'charge.succeeded':
+					// Charges are no longer in use in this plug-in. 
+					break;
 				case 'payment_intent.succeeded':
-					$paid           = $charge->paid; // true if charge succeeded (cards)
-					$transaction_id = $charge->id;
+					$paid           = $intent->amount_received; 
+					$transaction_id = $intent->id;
 					$receipt_id     = get_post_meta( $payment_id, '_receipt', true ); 
 					$payment_status = 'Completed';
-					$paid           = get_post_meta( $payment_id, '_total_paid', true );
 					$payer_name     = get_the_title( $payment_id );
 					$names          = explode( ' ', $payer_name );
 					$first_name     = array_shift( $names );
 					$last_name      = implode( ' ', $names );
+					$bill_address  = array(
+						'street'  => $intent->charges->data[0]->billing_details->address->line1,
+						'street2' => $intent->charges->data[0]->billing_details->address->line2,
+						'city'    => $intent->charges->data[0]->billing_details->address->city,
+						'state'   => $intent->charges->data[0]->billing_details->address->state,
+						'country' => $intent->charges->data[0]->billing_details->address->country,
+						'code'    => $intent->charges->data[0]->billing_details->address->postal_code,
+					);
+					// This is temporary; need to get it somehow.
+					$ship_address  = array(
+						'street'  => $intent->charges->data[0]->billing_details->address->line1,
+						'street2' => $intent->charges->data[0]->billing_details->address->line2,
+						'city'    => $intent->charges->data[0]->billing_details->address->city,
+						'state'   => $intent->charges->data[0]->billing_details->address->state,
+						'country' => $intent->charges->data[0]->billing_details->address->country,
+						'code'    => $intent->charges->data[0]->billing_details->address->postal_code,
+					);
 
 					$price = ( mt_zerodecimal_currency() ) ? $paid : $paid / 100;
 					$data  = array(
@@ -114,7 +132,8 @@ function mt_stripe_ipn() {
 						'last_name'      => $last_name, // get from charge.
 						'status'         => $payment_status,
 						'purchase_id'    => $payment_id,
-						'shipping'       => $address, // will need to get this from charge
+						'shipping'       => $ship_address,
+						//'billing'        => $bill_address, // Pending support in My Tickets.
 					);
 					mt_handle_payment( 'VERIFIED', '200', $data, $_REQUEST );
 					status_header( 200 );
@@ -127,6 +146,8 @@ function mt_stripe_ipn() {
 
 			do_action( 'mt_stripe_event', $charge );
 		}
+		status_header( 400 );
+		die();
 	}
 
 	return;
