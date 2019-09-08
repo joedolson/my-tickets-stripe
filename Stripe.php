@@ -199,7 +199,7 @@ function mt_setup_stripe( $gateways ) {
 		$setup = false;
 	}
 
-	if ( $setup ) {
+	if ( $setup && ( $test_webhook_id || $live_webhook_id ) ) {
 		if ( $test_webhook_id ) {
 			\Stripe\Stripe::setApiKey( $test_secret_key );
 			$test_endpoint = \Stripe\WebhookEndpoint::retrieve( $test_webhook_id );
@@ -214,19 +214,19 @@ function mt_setup_stripe( $gateways ) {
 		}
 		$note     = sprintf( __( 'Your Stripe webhook endpoints have been automatically created. The endpoints point to <code>%1$s</code>. Your live endpoint is currently <strong>%2$s</strong>, and your test endpoint is <strong>%3$s</strong>.', 'my-tickets-stripe' ), $live_endpoint->url, $live_endpoint->status, $test_endpoint->status );
 
-	} else if ( $setup && ! ( $live_webhook_id && $test_webhook_id ) ) {
+	} else if ( $setup ) {
 		\Stripe\Stripe::setApiKey( $live_secret_key );
 		$endpoints = \Stripe\WebhookEndpoint::all( ['limit' => 10] );
 		foreach( $endpoints as $endpoint ) {
-			if ( $endpoint->data['url'] == add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) ) {
-				$note = sprintf( __( 'You have an existing live Stripe endpoint that matches the expected endpoint for My Tickets: Stripe at <code>%s</code>.', 'my-tickets-stripe' ), $endpoint->data['url'] );
+			if ( $endpoint->url == add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) ) {
+				$note = sprintf( __( 'You have an existing live Stripe endpoint at <code>%s</code>.', 'my-tickets-stripe' ), $endpoint->url );
 			}
 		}
 		\Stripe\Stripe::setApiKey( $test_secret_key );
 		$endpoints = \Stripe\WebhookEndpoint::all( ['limit' => 10] );
 		foreach( $endpoints as $endpoint ) {
-			if ( $endpoint->data['url'] == add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) ) {
-				$note .= ' ' . sprintf( __( 'You have an existing test Stripe endpoint that matches the expected endpoint for My Tickets: Stripe at <code>%s</code>.', 'my-tickets-stripe' ), $endpoint->data['url'] );
+			if ( $endpoint->url == add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) ) {
+				$note .= ' ' . sprintf( __( 'You have an existing test Stripe endpoint at <code>%s</code>.', 'my-tickets-stripe' ), $endpoint->url );
 			}
 		}
 		if ( '' === $note ) {
