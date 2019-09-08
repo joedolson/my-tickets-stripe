@@ -142,15 +142,34 @@ function mt_stripe_settings( $settings, $post ) {
 	$nstripe_options = $new_options['mt_gateways']['stripe'];
 	$ostripe_options = $old_options['mt_gateways']['stripe'];
 
-	$secret_key = ( trim( $nstripe_options['prod_secret'] ) != trim( $ostripe_options['prod_secret'] ) ) ? trim( $nstripe_options['prod_secret'] ) : false;
+	$test_secret_key  = trim( $nstripe_options['test_secret'] );
+	$test_osecret_key = trim( $ostripe_options['test_secret'] );
+	$live_secret_key  = trim( $nstripe_options['prod_secret'] );
+	$live_osecret_key = trim( $ostripe_options['prod_secret'] );
 
-	if ( $secret_key ) {
-		\Stripe\Stripe::setApiKey( $secret_key );
+	$test_secret_key = ( $test_secret_key != $test_osecret_key && '' != $test_secret_key ) ? $test_secret_key : false;
+	$live_secret_key = ( $live_secret_key != $live_osecret_key && '' != $live_secret_key ) ? $live_secret_key : false;
+
+	if ( $test_secret_key ) {
+		\Stripe\Stripe::setApiKey( $test_secret_key );
 
 		$endpoint = \Stripe\WebhookEndpoint::create([
 			'url' => add_query_arg( 'mt_stripe_ipn', 'true', home_url() ),
 			'enabled_events' => ["*"]
 		]);
+
+		update_option( 'mt_stripe_test_webhook', $endpoint->id );
+	}
+
+	if ( $live_secret_key ) {
+		\Stripe\Stripe::setApiKey( $live_secret_key );
+
+		$endpoint = \Stripe\WebhookEndpoint::create([
+			'url' => add_query_arg( 'mt_stripe_ipn', 'true', home_url() ),
+			'enabled_events' => ["*"]
+		]);
+
+		update_option( 'mt_stripe_live_webhook', $endpoint->id );
 	}
 
 	return $settings;
@@ -166,14 +185,65 @@ add_filter( 'mt_setup_gateways', 'mt_setup_stripe', 10, 1 );
  * @return updated gateways
  */
 function mt_setup_stripe( $gateways ) {
+	$note           = '';
+	$options        = ( ! is_array( get_option( 'mt_settings' ) ) ) ? array() : get_option( 'mt_settings' );
+	$stripe_options = isset( $options['mt_gateways']['stripe'] ) ? $options['mt_gateways']['stripe'] : array();
+	if ( ! empty( $stripe_options ) ) {
+		$test_secret_key      = trim( $stripe_options['test_secret'] );
+		$test_webhook_id = get_option( 'mt_stripe_test_webhook', false );
+		$live_secret_key      = trim( $stripe_options['prod_secret'] );
+		$live_webhook_id = get_option( 'mt_stripe_live_webhook', false );
+		
+		$setup = ( $test_secret_key && $live_secret_key ) ? true : false;
+	} else {
+		$setup = false;
+	}
+
+	if ( $setup ) {
+		if ( $test_webhook_id ) {
+			\Stripe\Stripe::setApiKey( $test_secret_key );
+			$test_endpoint = \Stripe\WebhookEndpoint::retrieve( $test_webhook_id );
+		} else {
+			$test_endpoint = (object) array( 'status' => 'not created' );
+		}
+		if ( $live_webhook_id ) {
+			\Stripe\Stripe::setApiKey( $live_secret_key );
+			$live_endpoint = \Stripe\WebhookEndpoint::retrieve( $live_webhook_id );
+		} else {
+			$live_endpoint = (object) array( 'status' => 'not created', 'url' => add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) );
+		}
+		$note     = sprintf( __( 'Your Stripe webhook endpoints have been automatically created. The endpoints point to <code>%1$s</code>. Your live endpoint is currently <strong>%2$s</strong>, and your test endpoint is <strong>%3$s</strong>.', 'my-tickets-stripe' ), $live_endpoint->url, $live_endpoint->status, $test_endpoint->status );
+
+	} else if ( $setup && ! ( $live_webhook_id && $test_webhook_id ) ) {
+		\Stripe\Stripe::setApiKey( $live_secret_key );
+		$endpoints = \Stripe\WebhookEndpoint::all( ['limit' => 10] );
+		foreach( $endpoints as $endpoint ) {
+			if ( $endpoint->data['url'] == add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) ) {
+				$note = sprintf( __( 'You have an existing live Stripe endpoint that matches the expected endpoint for My Tickets: Stripe at <code>%s</code>.', 'my-tickets-stripe' ), $endpoint->data['url'] );
+			}
+		}
+		\Stripe\Stripe::setApiKey( $test_secret_key );
+		$endpoints = \Stripe\WebhookEndpoint::all( ['limit' => 10] );
+		foreach( $endpoints as $endpoint ) {
+			if ( $endpoint->data['url'] == add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) ) {
+				$note .= ' ' . sprintf( __( 'You have an existing test Stripe endpoint that matches the expected endpoint for My Tickets: Stripe at <code>%s</code>.', 'my-tickets-stripe' ), $endpoint->data['url'] );
+			}
+		}
+		if ( '' === $note ) {
+			$note = sprintf( __( 'To enable automatic refund processing, add <code>%s</code> as a Webhook URL in your Stripe account at Stripe > Dashboard > Settings > Webhooks. My Tickets: Stripe will attempt to configure your webhook automatically when you save your Stripe API keys.', 'my-tickets-stripe' ), add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) );
+		}
+	} else {
+		$note = sprintf( __( 'To enable automatic refund processing, add <code>%s</code> as a Webhook URL in your Stripe account at Stripe > Dashboard > Settings > Webhooks. My Tickets: Stripe will attempt to configure your webhook automatically when you save your Stripe API keys.', 'my-tickets-stripe' ), add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) );
+	}
+
 	// this key is how the gateway will be referenced in all contexts.
 	$gateways['stripe'] = array(
 		'label'  => __( 'Stripe', 'my-tickets-stripe' ),
 		'fields' => array(
-			'prod_secret'     => __( 'API Secret Key (Production)', 'my-tickets-stripe' ),
 			'prod_public'     => __( 'API Publishable Key (Production)', 'my-tickets-stripe' ),
-			'test_secret'     => __( 'API Secret Key (Test)', 'my-tickets-stripe' ),
+			'prod_secret'     => __( 'API Secret Key (Production)', 'my-tickets-stripe' ),
 			'test_public'     => __( 'API Publishable Key (Test)', 'my-tickets-stripe' ),
+			'test_secret'     => __( 'API Secret Key (Test)', 'my-tickets-stripe' ),
 			'test_mode' => array(
 				'label' => __( 'Test Mode Enabled', 'my-tickets-stripe' ),
 				'type'  => 'checkbox',
@@ -187,7 +257,7 @@ function mt_setup_stripe( $gateways ) {
 			),
 		),
 		// Translators: Stripe webhook URL for this site.
-		'note' => sprintf( __( 'To enable automatic refund processing, add <code>%s</code> as a Webhook URL in your Stripe account at Stripe > Dashboard > Settings > Webhooks.', 'my-tickets-stripe' ), add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) ),
+		'note' => $note,
 	);
 
 /**
