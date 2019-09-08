@@ -27,10 +27,13 @@ New or updated translations are always appreciated. The translation files are in
 
 = 1.2.0 =
 
-* Update Stripe Implementation to conform to Strong Customer Authentication rules
+* Major Update: Change Stripe API usage to conform to Strong Customer Authentication rules
 * Fix issue with missing shipping fields.
+* Option to offer card payment without requesting billing address.
+* Automatic configuration of webhook endpoint. 
+* Re-order API key fields to match Stripe ordering.
 * Improve customer information in Stripe admin.
-* Update plugin updater class
+* Update plugin updater class.
 
 = 1.1.5 =
 

@@ -425,7 +425,7 @@ function mt_stripe_form( $url, $payment_id, $total, $args, $method = 'stripe' ) 
 	<div class="stripe">';
 	// Hidden form fields
 	$form .= apply_filters( 'mt_stripe_form', '', 'stripe', $args );
-	if ( 'stripe' == $method ) {
+	if ( 'stripe' === $method ) {
 		$form .= "<div id='mt-card'>
 				<p class='form-row'>
 				  <label for='mt_name'>" . __( 'Name', 'my-tickets-stripe' ) . "</label><input id='mt_name' name='name' value='". esc_attr( $name ) . "' required>
@@ -439,6 +439,7 @@ function mt_stripe_form( $url, $payment_id, $total, $args, $method = 'stripe' ) 
 				</div>
 			</div>";
 	}
+	// iban and ideal are not currently available.
 	if ( 'iban' == $method ) {
 		$form .= '
 			<div id="mt-iban">
