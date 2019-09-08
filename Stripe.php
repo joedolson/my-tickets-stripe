@@ -427,7 +427,6 @@ function mt_stripe_form( $url, $payment_id, $total, $args, $method = 'stripe' ) 
 	$form .= apply_filters( 'mt_stripe_form', '', 'stripe', $args );
 	if ( 'stripe' == $method ) {
 		$form .= "<div id='mt-card'>
-				<div id='mt-card-errors' class='mt-stripe-errors' role='alert'></div>
 				<p class='form-row'>
 				  <label for='mt_name'>" . __( 'Name', 'my-tickets-stripe' ) . "</label><input id='mt_name' name='name' value='". esc_attr( $name ) . "' required>
 				</p>
@@ -443,7 +442,6 @@ function mt_stripe_form( $url, $payment_id, $total, $args, $method = 'stripe' ) 
 	if ( 'iban' == $method ) {
 		$form .= '
 			<div id="mt-iban">
-				<div id="mt-iban-errors" class="mt-stripe-errors" role="alert"></div>
 				<div class="form-row inline">
 					<div class="col">
 					  <label for="mt_name">' . __( 'Name', 'my-tickets-stripe' ) . '</label><input id="mt_name" name="name" value="' . esc_attr( $name ) . '" required>
@@ -473,7 +471,6 @@ function mt_stripe_form( $url, $payment_id, $total, $args, $method = 'stripe' ) 
 	if ( 'ideal' == $method ) {
 		$form .= '
 			<div id="mt-ideal">
-				<div id="mt-ideal-errors" class="mt-stripe-errors" role="alert"></div>
 				<div class="form-row">
 					<label for="name">' . __( 'Name', 'my-tickets-stripe' ) . '</label>
 					<input id="name" name="name" value="' . esc_attr( $name ) . '" required>
@@ -523,6 +520,7 @@ function mt_stripe_form( $url, $payment_id, $total, $args, $method = 'stripe' ) 
 		</div>';
 	}
 	$form .= mt_render_field( 'address', 'stripe' );
+	$form .= "<div id='mt-card-errors' class='mt-stripe-errors' role='alert'></div>";
 	$form .= "<input type='submit' name='stripe_submit' id='mt-stripe-submit' class='button button-primary' value='" . esc_attr( apply_filters( 'mt_gateway_button_text', __( 'Pay Now', 'my-tickets' ), 'stripe' ) ) . "' />";
 	$form .= apply_filters( 'mt_stripe_form', '', 'stripe', $args );
 	$form .= '</div></form>';
