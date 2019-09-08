@@ -86,7 +86,6 @@ if ( class_exists( 'EDD_SL_Plugin_Updater' ) ) { // prevent fatal error if doesn
  */
 require_once( 'stripe-php/init.php' );
 require_once( 'mt-stripe-ipn.php' );
-require_once( 'mt-stripe-ajax.php' );
 
 /**
  * Return all currencies supported by Stripe.
@@ -171,23 +170,28 @@ function mt_setup_stripe( $gateways ) {
 	$gateways['stripe'] = array(
 		'label'  => __( 'Stripe', 'my-tickets-stripe' ),
 		'fields' => array(
-			'prod_secret' => __( 'API Secret Key (Production)', 'my-tickets-stripe' ),
-			'prod_public' => __( 'API Publishable Key (Production)', 'my-tickets-stripe' ),
-			'test_secret' => __( 'API Secret Key (Test)', 'my-tickets-stripe' ),
-			'test_public' => __( 'API Publishable Key (Test)', 'my-tickets-stripe' ),
+			'prod_secret'     => __( 'API Secret Key (Production)', 'my-tickets-stripe' ),
+			'prod_public'     => __( 'API Publishable Key (Production)', 'my-tickets-stripe' ),
+			'test_secret'     => __( 'API Secret Key (Test)', 'my-tickets-stripe' ),
+			'test_public'     => __( 'API Publishable Key (Test)', 'my-tickets-stripe' ),
 			'test_mode' => array(
 				'label' => __( 'Test Mode Enabled', 'my-tickets-stripe' ),
 				'type'  => 'checkbox',
 				'value' => 'true',
 			),
-			'selector' => __( 'Gateway selector label', 'my-tickets' ),
+			'selector'        => __( 'Gateway selector label', 'my-tickets' ),
+			'disable_address' => array(
+				'label' => __( 'Disable Billing Address Fields', 'my-tickets' ),
+				'type'  => 'checkbox',
+				'value' => 'off',
+			),
 		),
 		// Translators: Stripe webhook URL for this site.
 		'note' => sprintf( __( 'To enable automatic refund processing, add <code>%s</code> as a Webhook URL in your Stripe account at Stripe > Dashboard > Settings > Webhooks.', 'my-tickets-stripe' ), add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) ),
 	);
 
 /**
- * Needs further work; take live when completed.
+ * Needs further work; take live when completed. But I can add multiple gateways within one plug-in. Woot.
 	$gateways['iban'] = array(
 		'label'    => __( 'IBAN', 'my-tickets-stripe' ),
 		'selector' => __( 'Gateway selector label', 'my-tickets-stripe' ),
@@ -413,6 +417,8 @@ function mt_stripe_form( $url, $payment_id, $total, $args, $method = 'stripe' ) 
 				</div>
 			</div>';
 	}
+	// Ability to disable billing address.
+	if ( ! isset( $stripe_options['disable_address'] ) || 'off' !== $stripe_options['disable_address'] ) {
 	$form .= '<div class="address section">
 		<fieldset>
 		<legend>' . __( 'Billing Address', 'my-tickets-stripe' ) . '</legend>
@@ -445,6 +451,7 @@ function mt_stripe_form( $url, $payment_id, $total, $args, $method = 'stripe' ) 
 			</p>
 		</fieldset>
 		</div>';
+	}
 	$form .= mt_render_field( 'address', 'stripe' );
 	$form .= "<input type='submit' name='stripe_submit' id='mt-stripe-submit' class='button button-primary' value='" . esc_attr( apply_filters( 'mt_gateway_button_text', __( 'Pay Now', 'my-tickets' ), 'stripe' ) ) . "' />";
 	$form .= apply_filters( 'mt_stripe_form', '', 'stripe', $args );

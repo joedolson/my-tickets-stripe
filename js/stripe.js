@@ -38,6 +38,7 @@
 
 		form.addEventListener('submit', function(event) {
 			event.preventDefault();
+			if ( document.getElementById( 'address1' ) !== null ) {
 			var ownerInfo = {
 				payment_method_data: {
 					billing_details: {
@@ -53,10 +54,19 @@
 					},
 				},
 			};
+			} else {
+				var ownerInfo = {
+					payment_method_data: {
+						billing_details: {
+							name: document.getElementById( 'mt_name' ).value,
+							email: document.getElementById( 'mt_email' ).value
+						},
+					},
+				};
+			}
 			submitButton.disabled = true;
 			submitButton.value = mt_stripe.processing;
 			var clientSecret = document.getElementById( 'mt_client_secret' ).value;
-			console.log( clientSecret );
 
 			stripe.handleCardPayment( clientSecret,card,ownerInfo).then(function(result) {
 				if (result.error) {
