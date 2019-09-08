@@ -5,9 +5,10 @@
 	var elements = stripe.elements();
 	var submitButton = document.getElementById( 'mt-stripe-submit' );
 	var cardExists = document.getElementById( 'mt-card-element' );
-	var payment_id = document.getElementById( 'mt-payment-id' ).value;
 
 	if ( cardExists !== null ) {
+		// Only query the payment ID if the card element exists.
+		var payment_id = document.getElementById( 'mt-payment-id' ).value;
 
 		var style = {
 			base: {
