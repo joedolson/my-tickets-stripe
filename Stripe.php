@@ -327,9 +327,14 @@ function mt_stripe_messages( $message, $code ) {
 			$payment_id     = absint( $_GET['payment_id'] );
 			$receipt_id     = get_post_meta( $payment_id, '_receipt', true );
 			$receipt        = esc_url( add_query_arg( array( 'receipt_id' => $receipt_id ), get_permalink( $options['mt_receipt_page'] ) ) );
-
-			// Translators: Transaction ID from Stripe, URL to view receipt.
-			return sprintf( __( 'Thank you for your purchase! <a href="%s">View your receipt</a>', 'my-tickets-stripe' ), $receipt );
+			// If payment status has not yet transitioned to completed, notify purchaser.
+			if ( 'Completed' !== get_post_meta( $payment_id, '_is_paid', true ) ) {
+				// Translators: URL to view receipt.
+				return sprintf( __( 'Thank you for your purchase! Your payment is still processing. Your receipt will be updated and tickets generated after the credit card payment is complete. <a href="%s">View your receipt</a>', 'my-tickets-stripe' ), $receipt );
+			} else {
+				// Translators: Transaction ID from Stripe, URL to view receipt.
+				return sprintf( __( 'Thank you for your purchase! <a href="%s">View your receipt</a>', 'my-tickets-stripe' ), $receipt );
+			}
 		} else {
 			$reason = isset( $_GET['reason'] ) ? stripslashes( urldecode( $_GET['reason'] ) ) : __( 'Unknown failure.', 'my-tickets-stripe' );
 			// Translators: Error message from Stripe.
@@ -402,14 +407,17 @@ function mt_stripe_form( $url, $payment_id, $total, $args, $method = 'stripe' ) 
 	} else {
 		$secret_key = trim( $stripe_options['prod_secret'] );
 	}
-	$remove = array( '<', '>', '"', '\'' );
+	// If blog name not provided, use URL.
+	$remove   = array( '<', '>', '"', '\'' );
+	$host     = parse_url( home_url() );
+	$blogname = ( '' === trim( get_bloginfo( 'name' ) ) ) ? $host['host'] : get_bloginfo( 'name' );
 
 	\Stripe\Stripe::setApiKey( $secret_key );
 	$intent = \Stripe\PaymentIntent::create([
 		'amount'               => $total,
 		'currency'             => $options['mt_currency'],
 		'payment_method_types' => ['card'],
-		'statement_descriptor' => strtoupper( substr( sanitize_text_field( str_replace( $remove, '', get_bloginfo( 'name' ) ) ), 0, 22 ) ),
+		'statement_descriptor' => strtoupper( substr( sanitize_text_field( str_replace( $remove, '', $blogname ) ), 0, 22 ) ),
 		'metadata'             => array( 'payment_id' => $payment_id ),
 		'description'          => sprintf( __( 'Tickets Purchased from %s', 'my-tickets-stripe' ), get_bloginfo( 'name' ) ),
 	]);
