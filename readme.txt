@@ -25,6 +25,12 @@ New or updated translations are always appreciated. The translation files are in
 
 == Changelog ==
 
+= 1.2.1 =
+
+* Bug fix: If a site does not have a blog name defined, use their URL to generate the statement descriptor.
+* Bug fix: Payment may not be finalized immediately. Provide better description of status if not.
+* 
+
 = 1.2.0 =
 
 * Major Update: Change Stripe API usage to conform to Strong Customer Authentication rules
