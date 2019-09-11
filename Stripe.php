@@ -84,7 +84,9 @@ if ( class_exists( 'EDD_SL_Plugin_Updater' ) ) { // prevent fatal error if doesn
  *
  * @package Stripe
  */
-require_once( 'stripe-php/init.php' );
+if ( ! class_exists( 'Stripe' ) ) {
+	require_once( 'stripe-php/init.php' );
+}
 require_once( 'mt-stripe-ipn.php' );
 
 /**
