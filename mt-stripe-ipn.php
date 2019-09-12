@@ -116,14 +116,19 @@ function mt_stripe_ipn() {
 						'code'    => $intent->charges->data[0]->billing_details->address->postal_code,
 					);
 					// This is temporary; need to get it somehow.
-					$ship_address  = array(
-						'street'  => $intent->charges->data[0]->billing_details->address->line1,
-						'street2' => $intent->charges->data[0]->billing_details->address->line2,
-						'city'    => $intent->charges->data[0]->billing_details->address->city,
-						'state'   => $intent->charges->data[0]->billing_details->address->state,
-						'country' => $intent->charges->data[0]->billing_details->address->country,
-						'code'    => $intent->charges->data[0]->billing_details->address->postal_code,
-					);
+					$shipping_address = get_post_meta( $payment_id, '_mts_shipping', true );
+					if ( $shipping_address ) {
+						$ship_address  = array(
+							'street'  => strip_tags( $shipping_address['street'] ),
+							'street2' => strip_tags( $shipping_address['street2'] ),
+							'city'    => strip_tags( $shipping_address['city'] ),
+							'state'   => strip_tags( $shipping_address['state'] ),
+							'country' => strip_tags( $shipping_address['country'] ),
+							'code'    => strip_tags( $shipping_address['code'] ),
+						);
+					} else {
+						$ship_address = array();
+					}
 
 					$price = ( mt_zerodecimal_currency() ) ? $paid : $paid / 100;
 					$data  = array(

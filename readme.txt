@@ -32,6 +32,8 @@ New or updated translations are always appreciated. The translation files are in
 * Bug fix: If Stripe is already loaded by another plug-in, don't load it again.
 * Bug fix: Don't assume Stripe settings already exist when configuring.
 * Bug fix: Don't attempt payment if Stripe API keys are not configured.
+* Bug fix: 'Successful Payment' text not localized.
+* Bug fix: Billing address passed as Shipping address.
 
 = 1.2.0 =
 

@@ -38,22 +38,48 @@
 
 		form.addEventListener('submit', function(event) {
 			event.preventDefault();
-			if ( document.getElementById( 'address1' ) !== null ) {
-			var ownerInfo = {
-				payment_method_data: {
-					billing_details: {
-						name: document.getElementById( 'mt_name' ).value,
-						address: {
-							line1: document.getElementById( 'address1' ).value,
-							line2: document.getElementById( 'address2' ).value,
-							city: document.getElementById( 'card_city' ).value,
-							postal_code: document.getElementById( 'card_zip' ).value,
-							country: document.getElementById( 'card_country' ).value,
-						},
-						email: document.getElementById( 'mt_email' ).value
+			if ( document.getElementById( 'mt_address_street' ) !== null ) {
+				var shippingInfo = {
+					action: mt_stripe.mts_ajax_action,
+					payment_id: payment_id,
+					address: {
+						street: document.getElementById( 'mt_address_street' ).value,
+						street2: document.getElementById( 'mt_address_street2' ).value,
+						city: document.getElementById( 'mt_address_city' ).value,
+						state: document.getElementById( 'mt_address_state' ).value,
+						code: document.getElementById( 'mt_address_code' ).value,
+						country: document.getElementById( 'mt_address_country' ).value,
 					},
-				},
-			};
+				};
+				$.ajax( {
+					type: 'POST',
+					url: mt_stripe.ajaxurl,
+					data: shippingInfo,
+					dataType: 'json',
+					success: function( data ) {
+						console.log( 'POST completed successfully' );
+					},
+					error: function(data) {
+						console.log( 'POST failed' );
+					}
+				});
+			}
+			if ( document.getElementById( 'address1' ) !== null ) {
+				var ownerInfo = {
+					payment_method_data: {
+						billing_details: {
+							name: document.getElementById( 'mt_name' ).value,
+							address: {
+								line1: document.getElementById( 'address1' ).value,
+								line2: document.getElementById( 'address2' ).value,
+								city: document.getElementById( 'card_city' ).value,
+								postal_code: document.getElementById( 'card_zip' ).value,
+								country: document.getElementById( 'card_country' ).value,
+							},
+							email: document.getElementById( 'mt_email' ).value
+						},
+					},
+				};
 			} else {
 				var ownerInfo = {
 					payment_method_data: {
@@ -68,7 +94,7 @@
 			submitButton.value = mt_stripe.processing;
 			var clientSecret = document.getElementById( 'mt_client_secret' ).value;
 
-			stripe.handleCardPayment( clientSecret,card,ownerInfo).then(function(result) {
+			stripe.handleCardPayment( clientSecret, card, ownerInfo ).then(function(result) {
 				if (result.error) {
 					// Inform the customer that there was an error.
 					var errorElement = document.getElementById('mt-card-errors');
@@ -78,7 +104,7 @@
 					submitButton.value = mt_stripe.pay;
 				} else {
 					var errorElement = document.getElementById('mt-card-errors');
-					errorElement.textContent = 'Successful Payment';
+					errorElement.textContent = mt_stripe.success;
 					window.location = mt_stripe.return_url.replace( '%d', payment_id );
 				}
 			})

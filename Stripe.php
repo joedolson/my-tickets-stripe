@@ -571,6 +571,7 @@ function mt_stripe_enqueue_scripts() {
 				),
 				get_permalink( $options['mt_purchase_page'] )
 			);
+			$security = wp_create_nonce( 'mts_ajax_stripe' );
 			wp_localize_script(
 				'mt.stripe',
 				'mt_stripe', 
@@ -582,8 +583,41 @@ function mt_stripe_enqueue_scripts() {
 					'selected'            => __( 'Selected', 'my-tickets-stripe' ),
 					'processing'          => __( 'Processing...', 'my-tickets-stripe' ),
 					'pay'                 => __( 'Pay Now', 'my-tickets-stripe' ),
-					'mt_ajax_action'      => 'mt_ajax_stripe',
+					'success'             => __( 'Successful Payment', 'my-tickets-stripe' ),
+					'mts_ajax_action'     => 'mts_ajax_stripe',
 					'ajaxurl'             => admin_url( 'admin-ajax.php' ),
+					'security'            => $security,
+				)
+			);
+		}
+	}
+}
+
+
+add_action( 'wp_ajax_mts_ajax_stripe', 'mts_ajax_stripe' );
+add_action( 'wp_ajax_nopriv_mts_ajax_stripe', 'mts_ajax_stripe' );
+/**
+ * AJAX query sending request to update Shipping Address.
+ */
+function mts_ajax_stripe() {
+	if ( isset( $_REQUEST['action'] ) && 'mts_ajax_stripe' === $_REQUEST['action'] ) {
+		if ( ! wp_verify_nonce( $_GET['security'], 'mts_ajax_stripe' ) ) {
+			die( __( 'Security verification failed', 'my-tickets-stripe' ) );
+		}
+		$payment_id = absint( $_REQUEST['payment_id'] );
+		$address    = $_REQUEST['address'];
+		$meta       = update_post_meta( $payment_id, '_mts_shipping', $address );
+
+		if ( false === $meta ) {
+			wp_send_json(
+				array(
+					'response' => 0,
+				)
+			);
+		} else {
+			wp_send_json(
+				array(
+					'response' => 1,
 				)
 			);
 		}
