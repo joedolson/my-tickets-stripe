@@ -39,7 +39,7 @@
 		form.addEventListener('submit', function(event) {
 			event.preventDefault();
 			if ( document.getElementById( 'mt_address_street' ) !== null ) {
-				var shippingInfo = {
+				var query = {
 					action: mt_stripe.mts_ajax_action,
 					payment_id: payment_id,
 					security: mt_stripe.security,
@@ -55,7 +55,7 @@
 				$.ajax( {
 					type: 'POST',
 					url: mt_stripe.ajaxurl,
-					data: shippingInfo,
+					data: query,
 					dataType: 'json',
 					success: function(data) {
 						console.log( 'POST completed successfully' );

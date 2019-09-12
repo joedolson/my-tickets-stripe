@@ -601,13 +601,12 @@ add_action( 'wp_ajax_nopriv_mts_ajax_stripe', 'mts_ajax_stripe' );
  */
 function mts_ajax_stripe() {
 	if ( isset( $_REQUEST['action'] ) && 'mts_ajax_stripe' === $_REQUEST['action'] ) {
-		if ( ! wp_verify_nonce( $_GET['security'], 'mts_ajax_stripe' ) ) {
+		if ( ! wp_verify_nonce( $_REQUEST['security'], 'mts_ajax_stripe' ) ) {
 			die( __( 'Security verification failed', 'my-tickets-stripe' ) );
 		}
 		$payment_id = absint( $_REQUEST['payment_id'] );
 		$address    = $_REQUEST['address'];
 		$meta       = update_post_meta( $payment_id, '_mts_shipping', $address );
-
 		if ( false === $meta ) {
 			wp_send_json(
 				array(
