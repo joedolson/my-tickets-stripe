@@ -42,6 +42,7 @@
 				var shippingInfo = {
 					action: mt_stripe.mts_ajax_action,
 					payment_id: payment_id,
+					security: mt_stripe.security,
 					address: {
 						street: document.getElementById( 'mt_address_street' ).value,
 						street2: document.getElementById( 'mt_address_street2' ).value,
@@ -56,7 +57,7 @@
 					url: mt_stripe.ajaxurl,
 					data: shippingInfo,
 					dataType: 'json',
-					success: function( data ) {
+					success: function(data) {
 						console.log( 'POST completed successfully' );
 					},
 					error: function(data) {
