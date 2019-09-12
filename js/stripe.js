@@ -58,10 +58,10 @@
 					data: query,
 					dataType: 'json',
 					success: function(data) {
-						console.log( 'POST completed successfully' );
+						console.log( 'Address saved successfully' );
 					},
 					error: function(data) {
-						console.log( 'POST failed' );
+						//console.log( 'An error prevented your shipping address from saving.' );
 					}
 				});
 			}
