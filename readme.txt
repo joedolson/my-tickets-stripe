@@ -30,6 +30,8 @@ New or updated translations are always appreciated. The translation files are in
 * Bug fix: If a site does not have a blog name defined, use their URL to generate the statement descriptor.
 * Bug fix: Payment may not be finalized immediately. Provide better description of status if not.
 * Bug fix: If Stripe is already loaded by another plug-in, don't load it again.
+* Bug fix: Don't assume Stripe settings already exist when configuring.
+* Bug fix: Don't attempt payment if Stripe API keys are not configured.
 
 = 1.2.0 =
 

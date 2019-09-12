@@ -409,6 +409,9 @@ function mt_stripe_form( $url, $payment_id, $total, $args, $method = 'stripe' ) 
 	} else {
 		$secret_key = trim( $stripe_options['prod_secret'] );
 	}
+	if ( ! $secret_key ) {
+		wp_die( __( 'Your Stripe API keys have not been set. Generate your API keys at Stripe.com', 'my-tickets-stripe' ) );
+	}
 	// If blog name not provided, use URL.
 	$remove   = array( '<', '>', '"', '\'' );
 	$host     = parse_url( home_url() );

@@ -29,6 +29,9 @@ function mt_stripe_ipn() {
 		} else {
 			$secret_key = trim( $stripe_options['prod_secret'] );
 		}
+		if ( ! $secret_key ) {
+			return;
+		}
 		\Stripe\Stripe::setAppInfo(
 			"WordPress MyTicketsStripe",
 			$mt_stripe_version,
