@@ -84,13 +84,16 @@ function mt_stripe_ipn() {
 			}
 			switch( $event->type ) {
 				case 'charge.refunded':
-					$details = array(
-						'id'    => $payment_id,
-						'name'  => get_the_title( $payment_id ),
-						'email' => get_post_meta( $payment_id, '_email', true ),
-					);
-					mt_send_notifications( 'Refunded', $details );
-					update_post_meta( $payment_id, '_is_paid', 'Refunded' );
+					$status  = get_post_meta( $payment_id, '_is_paid', true );
+					if ( ! 'Refunded' == $status ) {
+						$details = array(
+							'id'    => $payment_id,
+							'name'  => get_the_title( $payment_id ),
+							'email' => get_post_meta( $payment_id, '_email', true ),
+						);
+						mt_send_notifications( 'Refunded', $details );
+						update_post_meta( $payment_id, '_is_paid', 'Refunded' );
+					}
 					status_header( 200 );
 					die();
 					break;
@@ -99,51 +102,54 @@ function mt_stripe_ipn() {
 					// Charges are no longer in use in this plug-in. 
 					break;
 				case 'payment_intent.succeeded':
-					$paid           = $intent->amount_received; 
-					$transaction_id = $intent->id;
-					$receipt_id     = get_post_meta( $payment_id, '_receipt', true ); 
-					$payment_status = 'Completed';
-					$payer_name     = get_the_title( $payment_id );
-					$names          = explode( ' ', $payer_name );
-					$first_name     = array_shift( $names );
-					$last_name      = implode( ' ', $names );
-					$bill_address  = array(
-						'street'  => $intent->charges->data[0]->billing_details->address->line1,
-						'street2' => $intent->charges->data[0]->billing_details->address->line2,
-						'city'    => $intent->charges->data[0]->billing_details->address->city,
-						'state'   => $intent->charges->data[0]->billing_details->address->state,
-						'country' => $intent->charges->data[0]->billing_details->address->country,
-						'code'    => $intent->charges->data[0]->billing_details->address->postal_code,
-					);
-					// This is temporary; need to get it somehow.
-					$shipping_address = get_post_meta( $payment_id, '_mts_shipping', true );
-					if ( $shipping_address ) {
-						$ship_address  = array(
-							'street'  => strip_tags( $shipping_address['street'] ),
-							'street2' => strip_tags( $shipping_address['street2'] ),
-							'city'    => strip_tags( $shipping_address['city'] ),
-							'state'   => strip_tags( $shipping_address['state'] ),
-							'country' => strip_tags( $shipping_address['country'] ),
-							'code'    => strip_tags( $shipping_address['code'] ),
+					$status  = get_post_meta( $payment_id, '_is_paid', true );
+					if ( ! 'Completed' == $status ) {
+						$paid           = $intent->amount_received; 
+						$transaction_id = $intent->id;
+						$receipt_id     = get_post_meta( $payment_id, '_receipt', true ); 
+						$payment_status = 'Completed';
+						$payer_name     = get_the_title( $payment_id );
+						$names          = explode( ' ', $payer_name );
+						$first_name     = array_shift( $names );
+						$last_name      = implode( ' ', $names );
+						$bill_address  = array(
+							'street'  => $intent->charges->data[0]->billing_details->address->line1,
+							'street2' => $intent->charges->data[0]->billing_details->address->line2,
+							'city'    => $intent->charges->data[0]->billing_details->address->city,
+							'state'   => $intent->charges->data[0]->billing_details->address->state,
+							'country' => $intent->charges->data[0]->billing_details->address->country,
+							'code'    => $intent->charges->data[0]->billing_details->address->postal_code,
 						);
-					} else {
-						$ship_address = array();
-					}
+						// This is temporary; need to get it somehow.
+						$shipping_address = get_post_meta( $payment_id, '_mts_shipping', true );
+						if ( $shipping_address ) {
+							$ship_address  = array(
+								'street'  => strip_tags( $shipping_address['street'] ),
+								'street2' => strip_tags( $shipping_address['street2'] ),
+								'city'    => strip_tags( $shipping_address['city'] ),
+								'state'   => strip_tags( $shipping_address['state'] ),
+								'country' => strip_tags( $shipping_address['country'] ),
+								'code'    => strip_tags( $shipping_address['code'] ),
+							);
+						} else {
+							$ship_address = array();
+						}
 
-					$price = ( mt_zerodecimal_currency() ) ? $paid : $paid / 100;
-					$data  = array(
-						'transaction_id' => $transaction_id,
-						'price'          => $price,
-						'currency'       => $options['mt_currency'],
-						'email'          => $email,
-						'first_name'     => $first_name, // get from charge.
-						'last_name'      => $last_name, // get from charge.
-						'status'         => $payment_status,
-						'purchase_id'    => $payment_id,
-						'shipping'       => $ship_address,
-						//'billing'        => $bill_address, // Pending support in My Tickets.
-					);
-					mt_handle_payment( 'VERIFIED', '200', $data, $_REQUEST );
+						$price = ( mt_zerodecimal_currency() ) ? $paid : $paid / 100;
+						$data  = array(
+							'transaction_id' => $transaction_id,
+							'price'          => $price,
+							'currency'       => $options['mt_currency'],
+							'email'          => $email,
+							'first_name'     => $first_name, // get from charge.
+							'last_name'      => $last_name, // get from charge.
+							'status'         => $payment_status,
+							'purchase_id'    => $payment_id,
+							'shipping'       => $ship_address,
+							//'billing'        => $bill_address, // Pending support in My Tickets.
+						);
+						mt_handle_payment( 'VERIFIED', '200', $data, $_REQUEST );
+					}
 					status_header( 200 );
 					die();
 					break;
