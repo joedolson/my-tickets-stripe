@@ -154,7 +154,7 @@ function mt_stripe_ipn() {
 					die();
 					break;
 				default:
-					status_header( 400 );
+					status_header( 200 );
 					die();
 			}
 
