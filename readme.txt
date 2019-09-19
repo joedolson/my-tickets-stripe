@@ -29,6 +29,7 @@ New or updated translations are always appreciated. The translation files are in
 
 * Bug fix: Don't duplicate processing of events if status already updated.
 * Bug fix: Return 200 as default event response; only return 400 on errors.
+* Bug fix: Catch errors if webhook ID did not exist.
 
 = 1.2.1 =
 

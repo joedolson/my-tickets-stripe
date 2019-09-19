@@ -204,13 +204,27 @@ function mt_setup_stripe( $gateways ) {
 	if ( $setup && ( $test_webhook_id || $live_webhook_id ) ) {
 		if ( $test_webhook_id ) {
 			\Stripe\Stripe::setApiKey( $test_secret_key );
-			$test_endpoint = \Stripe\WebhookEndpoint::retrieve( $test_webhook_id );
+			try {
+				$test_endpoint = \Stripe\WebhookEndpoint::retrieve( $test_webhook_id );
+			} catch ( Exception $e ) {
+				if ( function_exists( 'mt_log_error' ) ) {
+					mt_log_error( $e );
+				}
+				$test_endpoint = (object) array( 'status' => 'missing' );
+			}
 		} else {
 			$test_endpoint = (object) array( 'status' => 'not created' );
 		}
 		if ( $live_webhook_id ) {
 			\Stripe\Stripe::setApiKey( $live_secret_key );
-			$live_endpoint = \Stripe\WebhookEndpoint::retrieve( $live_webhook_id );
+			try {
+				$live_endpoint = \Stripe\WebhookEndpoint::retrieve( $live_webhook_id );
+			} catch ( Exception $e ) {
+				if ( function_exists( 'mt_log_error' ) ) {
+					mt_log_error( $e );
+				}
+				$live_endpoint = (object) array( 'status' => 'missing' );
+			}
 		} else {
 			$live_endpoint = (object) array( 'status' => 'not created', 'url' => add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) );
 		}
