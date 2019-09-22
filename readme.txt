@@ -25,6 +25,11 @@ New or updated translations are always appreciated. The translation files are in
 
 == Changelog ==
 
+= 1.2.3 =
+
+* Bug fix: Better communication abouot webhook endpoints.
+* Bug fix: Better handling of event errors and unhandled events.
+
 = 1.2.2 =
 
 * Bug fix: Don't duplicate processing of events if status already updated.
