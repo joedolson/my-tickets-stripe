@@ -100,6 +100,8 @@ function mt_stripe_ipn() {
 				// Successful payment.
 				case 'charge.succeeded':
 					// Charges are no longer in use in this plug-in. 
+					status_header( 200 );
+					die();
 					break;
 				case 'payment_intent.succeeded':
 					$status  = get_post_meta( $payment_id, '_is_paid', true );
