@@ -45,9 +45,8 @@ function mt_stripe_ipn() {
 
 		// grab the event information.
 		$event_json = json_decode( $body );
-
 		if ( ! is_object( $event_json ) ) {
-			status_header( 400 );
+			status_header( 418 );
 			die;
 		}
 		// this will be used to retrieve the event from Stripe.
@@ -62,24 +61,28 @@ function mt_stripe_ipn() {
 
 				switch( $object ) {
 					case 'charge':
-						$charge     = $event->data->object;
-						$payment_id = $charge->metadata->payment_id;
+						$object     = $event->data->object;
+						$payment_id = $object->metadata->payment_id;
 						break;
 					case 'payment_intent':
-						$intent     = $event->data->object;
-						$payment_id = $intent->metadata->payment_id;
+						$object     = $event->data->object;
+						$payment_id = $object->metadata->payment_id;
 						$email      = get_post_meta( $payment_id, '_email', true );
 						break;
 					default:
-						status_header( 400 );
+						// Need to return 200 on all other situations.
+						status_header( 200 );
 						die();
 				}
+				do_action( 'mt_stripe_event', $object );
 
 			} catch ( Exception $e ) {
 				if ( function_exists( 'mt_log_error' ) ) {
 					mt_log_error( $e );
 				}
-				status_header( 400 );
+				// Return an HTTP 202 (Accepted) to stop repeating this event.
+				// An error is thrown if an event is sent to the site for a transaction in test mode after the site is switched to live mode or vice versa.
+				status_header( 202 );
 				die();
 			}
 			switch( $event->type ) {
@@ -93,21 +96,18 @@ function mt_stripe_ipn() {
 						);
 						mt_send_notifications( 'Refunded', $details );
 						update_post_meta( $payment_id, '_is_paid', 'Refunded' );
+						status_header( 200 );
+					} else {
+						status_header( 202 );
 					}
-					status_header( 200 );
 					die();
 					break;
 				// Successful payment.
-				case 'charge.succeeded':
-					// Charges are no longer in use in this plug-in. 
-					status_header( 200 );
-					die();
-					break;
 				case 'payment_intent.succeeded':
 					$status  = get_post_meta( $payment_id, '_is_paid', true );
 					if ( ! 'Completed' == $status ) {
-						$paid           = $intent->amount_received; 
-						$transaction_id = $intent->id;
+						$paid           = $object->amount_received; 
+						$transaction_id = $object->id;
 						$receipt_id     = get_post_meta( $payment_id, '_receipt', true ); 
 						$payment_status = 'Completed';
 						$payer_name     = get_the_title( $payment_id );
@@ -115,12 +115,12 @@ function mt_stripe_ipn() {
 						$first_name     = array_shift( $names );
 						$last_name      = implode( ' ', $names );
 						$bill_address  = array(
-							'street'  => $intent->charges->data[0]->billing_details->address->line1,
-							'street2' => $intent->charges->data[0]->billing_details->address->line2,
-							'city'    => $intent->charges->data[0]->billing_details->address->city,
-							'state'   => $intent->charges->data[0]->billing_details->address->state,
-							'country' => $intent->charges->data[0]->billing_details->address->country,
-							'code'    => $intent->charges->data[0]->billing_details->address->postal_code,
+							'street'  => $object->charges->data[0]->billing_details->address->line1,
+							'street2' => $object->charges->data[0]->billing_details->address->line2,
+							'city'    => $object->charges->data[0]->billing_details->address->city,
+							'state'   => $object->charges->data[0]->billing_details->address->state,
+							'country' => $object->charges->data[0]->billing_details->address->country,
+							'code'    => $object->charges->data[0]->billing_details->address->postal_code,
 						);
 						// This is temporary; need to get it somehow.
 						$shipping_address = get_post_meta( $payment_id, '_mts_shipping', true );
@@ -159,11 +159,10 @@ function mt_stripe_ipn() {
 					status_header( 200 );
 					die();
 			}
-
-			do_action( 'mt_stripe_event', $charge );
+		} else {
+			status_header( 400 );
+			die();
 		}
-		status_header( 400 );
-		die();
 	}
 
 	return;
