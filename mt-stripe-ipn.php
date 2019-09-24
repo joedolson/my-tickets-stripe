@@ -88,7 +88,7 @@ function mt_stripe_ipn() {
 			switch( $event->type ) {
 				case 'charge.refunded':
 					$status  = get_post_meta( $payment_id, '_is_paid', true );
-					if ( ! 'Refunded' == $status ) {
+					if ( ! ( 'Refunded' == $status ) ) {
 						$details = array(
 							'id'    => $payment_id,
 							'name'  => get_the_title( $payment_id ),
@@ -105,7 +105,7 @@ function mt_stripe_ipn() {
 				// Successful payment.
 				case 'payment_intent.succeeded':
 					$status  = get_post_meta( $payment_id, '_is_paid', true );
-					if ( ! 'Completed' == $status ) {
+					if ( ! ( 'Completed' == $status ) ) {
 						$paid           = $object->amount_received; 
 						$transaction_id = $object->id;
 						$receipt_id     = get_post_meta( $payment_id, '_receipt', true ); 
