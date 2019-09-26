@@ -25,6 +25,11 @@ New or updated translations are always appreciated. The translation files are in
 
 == Changelog ==
 
+= 1.2.5 =
+
+* Change: Add processing animation to show that card transaction still in progress.
+* Change: Add delay on JS redirect to give Stripe more time to communicate with server.
+
 = 1.2.4 =
 
 * Bug fix: Really stupid invalid comparison error.

@@ -93,6 +93,7 @@
 			}
 			submitButton.disabled = true;
 			submitButton.value = mt_stripe.processing;
+			submitButton.classList.add( 'processing' );
 			var clientSecret = document.getElementById( 'mt_client_secret' ).value;
 
 			stripe.handleCardPayment( clientSecret, card, ownerInfo ).then(function(result) {
@@ -106,7 +107,10 @@
 				} else {
 					var errorElement = document.getElementById('mt-card-errors');
 					errorElement.textContent = mt_stripe.success;
-					window.location = mt_stripe.return_url.replace( '%d', payment_id );
+					// Delay 3 seconds to allow time for Stripe to communicate back to the server.
+					setTimeout( function() {
+						//window.location = mt_stripe.return_url.replace( '%d', payment_id );
+					}, 3000 );
 				}
 			})
 		});

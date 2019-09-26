@@ -49,3 +49,20 @@
 	color: inherit;
 	background: inherit;
 }
+
+@keyframes shadow-pulse
+{
+	0% {
+		box-shadow: 0 0 0 0px rgba(0, 0, 0, 0.2);
+	}
+	100% {
+		box-shadow: 0 0 0 8px rgba(0, 0, 0, 0);
+	}
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	#mt-stripe-submit.processing {
+		animation: shadow-pulse 1s infinite;
+	}
+}
+
