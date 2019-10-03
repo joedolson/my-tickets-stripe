@@ -137,41 +137,43 @@ add_filter( 'mt_settings', 'mt_stripe_settings', 10, 2 );
  * 
  * @return settings
  */
-function mt_stripe_settings( $settings, $post ) {
-	$new_options = array_merge( mt_default_settings(), $settings );
-	$old_options = array_merge( mt_default_settings(), get_option( 'mt_settings' ) );
-	// these all need to be set from Stripe data.
-	$nstripe_options = $new_options['mt_gateways']['stripe'];
-	$ostripe_options = isset( $old_options['mt_gateways']['stripe'] ) ? $old_options['mt_gateways']['stripe'] : array();
+function mt_stripe_settings( $settings, $post ) {]
+	if ( isset( $_GET['page'] ) && 'mt-payment' == $_GET['page'] ) {
+		$new_options = array_merge( mt_default_settings(), $settings );
+		$old_options = array_merge( mt_default_settings(), get_option( 'mt_settings' ) );
+		// these all need to be set from Stripe data.
+		$nstripe_options = $new_options['mt_gateways']['stripe'];
+		$ostripe_options = isset( $old_options['mt_gateways']['stripe'] ) ? $old_options['mt_gateways']['stripe'] : array();
 
-	$test_secret_key  = trim( $nstripe_options['test_secret'] );
-	$test_osecret_key = isset( $ostripe_options['test_secret'] ) ? trim( $ostripe_options['test_secret'] ) : '';
-	$live_secret_key  = trim( $nstripe_options['prod_secret'] );
-	$live_osecret_key = isset( $ostripe_options['prod_secret'] ) ? trim( $ostripe_options['prod_secret'] ) : '';
+		$test_secret_key  = trim( $nstripe_options['test_secret'] );
+		$test_osecret_key = isset( $ostripe_options['test_secret'] ) ? trim( $ostripe_options['test_secret'] ) : '';
+		$live_secret_key  = trim( $nstripe_options['prod_secret'] );
+		$live_osecret_key = isset( $ostripe_options['prod_secret'] ) ? trim( $ostripe_options['prod_secret'] ) : '';
 
-	$test_secret_key = ( $test_secret_key != $test_osecret_key && '' != $test_secret_key ) ? $test_secret_key : false;
-	$live_secret_key = ( $live_secret_key != $live_osecret_key && '' != $live_secret_key ) ? $live_secret_key : false;
+		$test_secret_key = ( $test_secret_key != $test_osecret_key && '' != $test_secret_key ) ? $test_secret_key : false;
+		$live_secret_key = ( $live_secret_key != $live_osecret_key && '' != $live_secret_key ) ? $live_secret_key : false;
 
-	if ( $test_secret_key ) {
-		\Stripe\Stripe::setApiKey( $test_secret_key );
+		if ( $test_secret_key ) {
+			\Stripe\Stripe::setApiKey( $test_secret_key );
 
-		$endpoint = \Stripe\WebhookEndpoint::create([
-			'url' => add_query_arg( 'mt_stripe_ipn', 'true', home_url() ),
-			'enabled_events' => ["*"]
-		]);
+			$endpoint = \Stripe\WebhookEndpoint::create([
+				'url' => add_query_arg( 'mt_stripe_ipn', 'true', home_url() ),
+				'enabled_events' => ["*"]
+			]);
 
-		update_option( 'mt_stripe_test_webhook', $endpoint->id );
-	}
+			update_option( 'mt_stripe_test_webhook', $endpoint->id );
+		}
 
-	if ( $live_secret_key ) {
-		\Stripe\Stripe::setApiKey( $live_secret_key );
+		if ( $live_secret_key ) {
+			\Stripe\Stripe::setApiKey( $live_secret_key );
 
-		$endpoint = \Stripe\WebhookEndpoint::create([
-			'url' => add_query_arg( 'mt_stripe_ipn', 'true', home_url() ),
-			'enabled_events' => ["*"]
-		]);
+			$endpoint = \Stripe\WebhookEndpoint::create([
+				'url' => add_query_arg( 'mt_stripe_ipn', 'true', home_url() ),
+				'enabled_events' => ["*"]
+			]);
 
-		update_option( 'mt_stripe_live_webhook', $endpoint->id );
+			update_option( 'mt_stripe_live_webhook', $endpoint->id );
+		}
 	}
 
 	return $settings;

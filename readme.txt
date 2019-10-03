@@ -29,6 +29,7 @@ New or updated translations are always appreciated. The translation files are in
 
 * Change: Add processing animation to show that card transaction still in progress.
 * Change: Add delay on JS redirect to give Stripe more time to communicate with server.
+* Bug fix: Only save Stripe settings on payment settings page.
 
 = 1.2.4 =
 
