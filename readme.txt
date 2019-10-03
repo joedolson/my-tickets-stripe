@@ -5,7 +5,7 @@ Tags: my-tickets, stripe
 Requires at least: 4.4
 Tested up to: 5.1
 Requires PHP: 5.4
-Stable tag: 1.2.4
+Stable tag: 1.2.5
 
 Support for Stripe in My Tickets.
 
@@ -29,7 +29,7 @@ New or updated translations are always appreciated. The translation files are in
 
 * Change: Add processing animation to show that card transaction still in progress.
 * Change: Add delay on JS redirect to give Stripe more time to communicate with server.
-* Bug fix: Only save Stripe settings on payment settings page.
+* Bug fix: Prevent PHP notice: only save Stripe settings on payment settings page.
 
 = 1.2.4 =
 
