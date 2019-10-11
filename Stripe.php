@@ -137,7 +137,7 @@ add_filter( 'mt_settings', 'mt_stripe_settings', 10, 2 );
  * 
  * @return settings
  */
-function mt_stripe_settings( $settings, $post ) {]
+function mt_stripe_settings( $settings, $post ) {
 	if ( isset( $_GET['page'] ) && 'mt-payment' == $_GET['page'] ) {
 		$new_options = array_merge( mt_default_settings(), $settings );
 		$old_options = array_merge( mt_default_settings(), get_option( 'mt_settings' ) );
