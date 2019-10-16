@@ -25,6 +25,11 @@ New or updated translations are always appreciated. The translation files are in
 
 == Changelog ==
 
+= 1.2.7 =
+
+* Bug fix: Disabled redirect from purchase screen.
+* Improvement: Store intent ID to avoid creating un-completable payment requests.
+
 = 1.2.6 =
 
 * Bug fix: Stray character.
