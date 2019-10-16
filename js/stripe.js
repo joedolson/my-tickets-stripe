@@ -109,7 +109,7 @@
 					errorElement.textContent = mt_stripe.success;
 					// Delay 3 seconds to allow time for Stripe to communicate back to the server.
 					setTimeout( function() {
-						//window.location = mt_stripe.return_url.replace( '%d', payment_id );
+						window.location = mt_stripe.return_url.replace( '%d', payment_id );
 					}, 3000 );
 				}
 			})
