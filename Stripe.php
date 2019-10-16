@@ -433,15 +433,21 @@ function mt_stripe_form( $url, $payment_id, $total, $args, $method = 'stripe' ) 
 	$host     = parse_url( home_url() );
 	$blogname = ( '' === trim( get_bloginfo( 'name' ) ) ) ? $host['host'] : get_bloginfo( 'name' );
 
+	$intent_id = get_post_meta( $payment_id, '_mt_payment_intent_id', true );
 	\Stripe\Stripe::setApiKey( $secret_key );
-	$intent = \Stripe\PaymentIntent::create([
-		'amount'               => $total,
-		'currency'             => $options['mt_currency'],
-		'payment_method_types' => ['card'],
-		'statement_descriptor' => strtoupper( substr( sanitize_text_field( str_replace( $remove, '', $blogname ) ), 0, 22 ) ),
-		'metadata'             => array( 'payment_id' => $payment_id ),
-		'description'          => sprintf( __( 'Tickets Purchased from %s', 'my-tickets-stripe' ), get_bloginfo( 'name' ) ),
-	]);
+	if ( ! $intent_id ) {
+		$intent = \Stripe\PaymentIntent::create([
+			'amount'               => $total,
+			'currency'             => $options['mt_currency'],
+			'payment_method_types' => ['card'],
+			'statement_descriptor' => strtoupper( substr( sanitize_text_field( str_replace( $remove, '', $blogname ) ), 0, 22 ) ),
+			'metadata'             => array( 'payment_id' => $payment_id ),
+			'description'          => sprintf( __( 'Tickets Purchased from %s', 'my-tickets-stripe' ), get_bloginfo( 'name' ) ),
+		]);
+		update_post_meta( $payment_id, '_mt_payment_intent_id', $intent->id );
+	} else {
+		$intent = \Stripe\PaymentIntent::retrieve( $intent_id );
+	}
 
 	$form  = '<form id="mt-payment-form" action="/charge" method="post">
 	<div class="mt-stripe-hidden-fields">
