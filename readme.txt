@@ -3,7 +3,7 @@ Contributors: joedolson
 Donate link: http://www.joedolson.com/my-tickets/add-ons/
 Tags: my-tickets, stripe
 Requires at least: 4.4
-Tested up to: 5.1
+Tested up to: 5.3
 Requires PHP: 5.4
 Stable tag: 1.2.6
 
