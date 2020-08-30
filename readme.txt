@@ -28,6 +28,7 @@ New or updated translations are always appreciated. The translation files are in
 = 1.2.8 =
 
 * Bug fix: Incorrect Stripe class_exists check.
+* Add translation: French.
 
 = 1.2.7 =
 
