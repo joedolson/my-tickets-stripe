@@ -3,9 +3,9 @@ Contributors: joedolson
 Donate link: http://www.joedolson.com/my-tickets/add-ons/
 Tags: my-tickets, stripe
 Requires at least: 4.4
-Tested up to: 5.3
-Requires PHP: 5.4
-Stable tag: 1.2.6
+Tested up to: 5.5
+Requires PHP: 5.6
+Stable tag: 1.2.8
 
 Support for Stripe in My Tickets.
 
@@ -24,6 +24,10 @@ New or updated translations are always appreciated. The translation files are in
 3. Go to My Tickets > Payment Settings and configure the Stripe payment gateway.
 
 == Changelog ==
+
+= 1.2.8 =
+
+* Bug fix: Incorrect Stripe class_exists check.
 
 = 1.2.7 =
 

@@ -4,7 +4,7 @@
  *
  * @package     My Tickets: Stripe
  * @author      Joe Dolson
- * @copyright   2016-2019 Joe Dolson
+ * @copyright   2016-2020 Joe Dolson
  * @license     GPL-2.0+
  *
  * @wordpress-plugin
@@ -17,11 +17,11 @@
  * License:     GPL-2.0+
  * License URI: http://www.gnu.org/license/gpl-2.0.txt
  * Domain Path: lang
- * Version:     1.2.7
+ * Version:     1.2.8
  */
 
 /*
-	Copyright 2016-2019  Joe Dolson (email : joe@joedolson.com)
+	Copyright 2016-2020  Joe Dolson (email : joe@joedolson.com)
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@
 */
 
 global $mt_stripe_version;
-$mt_stripe_version = '1.2.7';
+$mt_stripe_version = '1.2.8';
 load_plugin_textdomain( 'my-tickets-stripe', false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
 
 add_action( 'admin_notices', 'mt_stripe_mt_version' );
@@ -84,7 +84,7 @@ if ( class_exists( 'EDD_SL_Plugin_Updater' ) ) { // prevent fatal error if doesn
  *
  * @package Stripe
  */
-if ( ! class_exists( 'Stripe' ) ) {
+if ( ! class_exists( '\Stripe\Stripe' ) ) {
 	require_once( 'stripe-php/init.php' );
 }
 require_once( 'mt-stripe-ipn.php' );
@@ -274,7 +274,6 @@ function mt_setup_stripe( $gateways ) {
 				'value' => 'off',
 			),
 		),
-		// Translators: Stripe webhook URL for this site.
 		'note' => $note,
 	);
 
