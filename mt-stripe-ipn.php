@@ -167,3 +167,13 @@ function mt_stripe_ipn() {
 
 	return;
 }
+
+/**
+ * Set cURL to use SSL version supporting TLS 1.2
+ *
+ * @param object $handle CURL object.
+ */
+function mts_http_api_curl( $handle ) {
+	curl_setopt( $handle, CURLOPT_SSLVERSION, 6 );
+}
+add_action( 'http_api_curl', 'mts_http_api_curl' );
