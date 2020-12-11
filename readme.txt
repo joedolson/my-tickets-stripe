@@ -25,6 +25,12 @@ New or updated translations are always appreciated. The translation files are in
 
 == Changelog ==
 
+= 1.2.9 =
+
+* Change: pass event-specific references in purchase description.
+* Change: Add option to refresh Stripe webhooks.
+* Changes to webhook terminology for consistency.
+
 = 1.2.8 =
 
 * Bug fix: Incorrect Stripe class_exists check.

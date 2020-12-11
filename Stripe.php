@@ -153,18 +153,26 @@ function mt_stripe_settings( $settings, $post ) {
 		$test_secret_key = ( $test_secret_key != $test_osecret_key && '' != $test_secret_key ) ? $test_secret_key : false;
 		$live_secret_key = ( $live_secret_key != $live_osecret_key && '' != $live_secret_key ) ? $live_secret_key : false;
 
-		if ( $test_secret_key ) {
+		$updates  = ( isset( $_POST['mt_gateways'] ) ) ? $_POST['mt_gateways'] : false;
+		$runsetup = false;
+		if ( $updates && isset( $updates['stripe']['update_webhooks'] ) ) {
+			$runsetup = true;
+			// If requesting runsetup, ensure there is an API key set.
+			$test_secret_key = ( $test_secret_key != $test_osecret_key && '' != $test_secret_key ) ? $test_secret_key : $test_osecret_key;
+			$live_secret_key = ( $live_secret_key != $live_osecret_key && '' != $live_secret_key ) ? $live_secret_key : $live_osecret_key;
+		}
+
+		if ( $test_secret_key || $runsetup ) {
 			\Stripe\Stripe::setApiKey( $test_secret_key );
 
 			$endpoint = \Stripe\WebhookEndpoint::create([
 				'url' => add_query_arg( 'mt_stripe_ipn', 'true', home_url() ),
 				'enabled_events' => ["*"]
 			]);
-
 			update_option( 'mt_stripe_test_webhook', $endpoint->id );
 		}
 
-		if ( $live_secret_key ) {
+		if ( $live_secret_key || $runsetup ) {
 			\Stripe\Stripe::setApiKey( $live_secret_key );
 
 			$endpoint = \Stripe\WebhookEndpoint::create([
@@ -230,21 +238,29 @@ function mt_setup_stripe( $gateways ) {
 		} else {
 			$live_endpoint = (object) array( 'status' => 'not created', 'url' => add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) );
 		}
-		$note     = sprintf( __( 'Your Stripe webhook endpoints have been automatically created. The endpoints point to <code>%1$s</code>. Your live endpoint is currently <strong>%2$s</strong>, and your test endpoint is <strong>%3$s</strong>.', 'my-tickets-stripe' ), $live_endpoint->url, $live_endpoint->status, $test_endpoint->status );
+		$note     = sprintf( __( 'Your webhooks point to <code>%1$s</code>. Your live webhook is currently <strong>%2$s</strong>, and your test webhook is <strong>%3$s</strong>.', 'my-tickets-stripe' ), $live_endpoint->url, $live_endpoint->status, $test_endpoint->status );
+
+		$updates  = ( isset( $_POST['mt_gateways'] ) ) ? $_POST['mt_gateways'] : false;
+		$runsetup = false;
+		if ( $updates && isset( $updates['stripe']['update_webhooks'] ) ) {
+			$runsetup = true;
+		}
+
+		$note .= ( true === $runsetup ) ? ' <strong class="updated">' . __( 'Your Stripe webhook endpoints have been automatically created or updated.', 'my-tickets-stripe' ) . '</strong>' : '';
 
 	} else if ( $setup ) {
 		\Stripe\Stripe::setApiKey( $live_secret_key );
 		$endpoints = \Stripe\WebhookEndpoint::all( ['limit' => 10] );
 		foreach( $endpoints as $endpoint ) {
 			if ( $endpoint->url == add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) ) {
-				$note = sprintf( __( 'You have an existing live Stripe endpoint at <code>%s</code>.', 'my-tickets-stripe' ), $endpoint->url );
+				$note = sprintf( __( 'You have an existing live Stripe webhook at <code>%s</code>.', 'my-tickets-stripe' ), $endpoint->url );
 			}
 		}
 		\Stripe\Stripe::setApiKey( $test_secret_key );
 		$endpoints = \Stripe\WebhookEndpoint::all( ['limit' => 10] );
 		foreach( $endpoints as $endpoint ) {
 			if ( $endpoint->url == add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) ) {
-				$note .= ' ' . sprintf( __( 'You have an existing test Stripe endpoint at <code>%s</code>.', 'my-tickets-stripe' ), $endpoint->url );
+				$note .= ' ' . sprintf( __( 'You have an existing test Stripe webhook at <code>%s</code>.', 'my-tickets-stripe' ), $endpoint->url );
 			}
 		}
 		if ( '' === $note ) {
@@ -266,6 +282,11 @@ function mt_setup_stripe( $gateways ) {
 				'label' => __( 'Test Mode Enabled', 'my-tickets-stripe' ),
 				'type'  => 'checkbox',
 				'value' => 'true',
+			),
+			'update_webhooks' => array(
+				'label' => __( 'Update Webhooks', 'my-tickets-stripe' ),
+				'type'  => 'checkbox',
+				'value' => '',
 			),
 			'selector'        => __( 'Gateway selector label', 'my-tickets' ),
 			'disable_address' => array(
@@ -435,13 +456,24 @@ function mt_stripe_form( $url, $payment_id, $total, $args, $method = 'stripe' ) 
 	$intent_id = get_post_meta( $payment_id, '_mt_payment_intent_id', true );
 	\Stripe\Stripe::setApiKey( $secret_key );
 	if ( ! $intent_id ) {
-		$intent = \Stripe\PaymentIntent::create([
+		// Character limit for description value is 500.
+		$events      = mt_list_events( $payment_id );
+		$event_list  = array();
+		foreach( $events as $event ) {
+			$event_list = get_the_title( $event );
+		}
+		$purchased   = implode( ', ', $event_list );
+		$description = sprintf( __( 'Tickets Purchased from %1$s: (%2$s)', 'my-tickets-stripe' ), get_bloginfo( 'name' ), $purchased );
+		if ( 500 >= strlen( $description ) ) {
+			$description = substr( $description, 0, 497 ) . '...';
+		}
+		$intent      = \Stripe\PaymentIntent::create([
 			'amount'               => $total,
 			'currency'             => $options['mt_currency'],
 			'payment_method_types' => ['card'],
 			'statement_descriptor' => strtoupper( substr( sanitize_text_field( str_replace( $remove, '', $blogname ) ), 0, 22 ) ),
 			'metadata'             => array( 'payment_id' => $payment_id ),
-			'description'          => sprintf( __( 'Tickets Purchased from %s', 'my-tickets-stripe' ), get_bloginfo( 'name' ) ),
+			'description'          => $description,
 		]);
 		update_post_meta( $payment_id, '_mt_payment_intent_id', $intent->id );
 	} else {
