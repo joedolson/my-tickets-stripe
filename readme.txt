@@ -3,9 +3,9 @@ Contributors: joedolson
 Donate link: http://www.joedolson.com/my-tickets/add-ons/
 Tags: my-tickets, stripe
 Requires at least: 4.4
-Tested up to: 5.5
+Tested up to: 5.6
 Requires PHP: 5.6
-Stable tag: 1.2.8
+Stable tag: 1.2.9
 
 Support for Stripe in My Tickets.
 
