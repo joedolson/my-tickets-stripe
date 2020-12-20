@@ -116,7 +116,7 @@ function mt_stripe_currencies( $currencies ) {
 	$options     = array_merge( $defaults, $options );
 	$mt_gateways = $options['mt_gateway'];
 
-	if ( is_array( $mt_gateways ) && in_array( 'authorizenet', $mt_gateways ) ) {
+	if ( is_array( $mt_gateways ) && in_array( 'authorizenet', $mt_gateways, true ) ) {
 		$stripe = mt_stripe_supported();
 		$return = array();
 		foreach ( $stripe as $currency ) {
@@ -169,20 +169,24 @@ function mt_stripe_settings( $settings, $post ) {
 		if ( $test_secret_key || $runsetup ) {
 			\Stripe\Stripe::setApiKey( $test_secret_key );
 
-			$endpoint = \Stripe\WebhookEndpoint::create([
-				'url' => add_query_arg( 'mt_stripe_ipn', 'true', home_url() ),
-				'enabled_events' => ["*"]
-			]);
+			$endpoint = \Stripe\WebhookEndpoint::create(
+				array(
+					'url'            => add_query_arg( 'mt_stripe_ipn', 'true', home_url() ),
+					'enabled_events' => array( '*' ),
+				)
+			);
 			update_option( 'mt_stripe_test_webhook', $endpoint->id );
 		}
 
 		if ( $live_secret_key || $runsetup ) {
 			\Stripe\Stripe::setApiKey( $live_secret_key );
 
-			$endpoint = \Stripe\WebhookEndpoint::create([
-				'url' => add_query_arg( 'mt_stripe_ipn', 'true', home_url() ),
-				'enabled_events' => ["*"]
-			]);
+			$endpoint = \Stripe\WebhookEndpoint::create(
+				array(
+					'url'            => add_query_arg( 'mt_stripe_ipn', 'true', home_url() ),
+					'enabled_events' => array( '*' ),
+				)
+			);
 
 			update_option( 'mt_stripe_live_webhook', $endpoint->id );
 		}
@@ -205,9 +209,9 @@ function mt_setup_stripe( $gateways ) {
 	$options        = ( ! is_array( get_option( 'mt_settings' ) ) ) ? array() : get_option( 'mt_settings' );
 	$stripe_options = isset( $options['mt_gateways']['stripe'] ) ? $options['mt_gateways']['stripe'] : array();
 	if ( ! empty( $stripe_options ) ) {
-		$test_secret_key      = trim( $stripe_options['test_secret'] );
+		$test_secret_key = trim( $stripe_options['test_secret'] );
 		$test_webhook_id = get_option( 'mt_stripe_test_webhook', false );
-		$live_secret_key      = trim( $stripe_options['prod_secret'] );
+		$live_secret_key = trim( $stripe_options['prod_secret'] );
 		$live_webhook_id = get_option( 'mt_stripe_live_webhook', false );
 
 		$setup = ( $test_secret_key && $live_secret_key ) ? true : false;
@@ -240,9 +244,13 @@ function mt_setup_stripe( $gateways ) {
 				$live_endpoint = (object) array( 'status' => 'missing' );
 			}
 		} else {
-			$live_endpoint = (object) array( 'status' => 'not created', 'url' => add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) );
+			$live_endpoint = (object) array(
+				'status' => 'not created',
+				'url' => add_query_arg( 'mt_stripe_ipn', 'true', home_url() )
+			);
 		}
-		$note     = sprintf( __( 'Your webhooks point to <code>%1$s</code>. Your live webhook is currently <strong>%2$s</strong>, and your test webhook is <strong>%3$s</strong>.', 'my-tickets-stripe' ), $live_endpoint->url, $live_endpoint->status, $test_endpoint->status );
+		// Translators: Live webhook URL, live webhook status, test webhook URL.
+		$note = sprintf( __( 'Your webhooks point to <code>%1$s</code>. Your live webhook is currently <strong>%2$s</strong>, and your test webhook is <strong>%3$s</strong>.', 'my-tickets-stripe' ), $live_endpoint->url, $live_endpoint->status, $test_endpoint->status );
 
 		$updates  = ( isset( $_POST['mt_gateways'] ) ) ? $_POST['mt_gateways'] : false;
 		$runsetup = false;
@@ -252,25 +260,29 @@ function mt_setup_stripe( $gateways ) {
 
 		$note .= ( true === $runsetup ) ? ' <strong class="updated">' . __( 'Your Stripe webhook endpoints have been automatically created or updated.', 'my-tickets-stripe' ) . '</strong>' : '';
 
-	} else if ( $setup ) {
+	} elseif ( $setup ) {
 		\Stripe\Stripe::setApiKey( $live_secret_key );
-		$endpoints = \Stripe\WebhookEndpoint::all( ['limit' => 10] );
-		foreach( $endpoints as $endpoint ) {
-			if ( $endpoint->url == add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) ) {
+		$endpoints = \Stripe\WebhookEndpoint::all( array( 'limit' => 10 ) );
+		foreach ( $endpoints as $endpoint ) {
+			if ( $endpoint->url === add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) ) {
+				// Translators: Webhook URL.
 				$note = sprintf( __( 'You have an existing live Stripe webhook at <code>%s</code>.', 'my-tickets-stripe' ), $endpoint->url );
 			}
 		}
 		\Stripe\Stripe::setApiKey( $test_secret_key );
-		$endpoints = \Stripe\WebhookEndpoint::all( ['limit' => 10] );
-		foreach( $endpoints as $endpoint ) {
-			if ( $endpoint->url == add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) ) {
+		$endpoints = \Stripe\WebhookEndpoint::all( array( 'limit' => 10 ) );
+		foreach ( $endpoints as $endpoint ) {
+			if ( $endpoint->url === add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) ) {
+				// Translators: Webhook URL.
 				$note .= ' ' . sprintf( __( 'You have an existing test Stripe webhook at <code>%s</code>.', 'my-tickets-stripe' ), $endpoint->url );
 			}
 		}
 		if ( '' === $note ) {
+			// Translators: Webhook URL.
 			$note = sprintf( __( 'You need to add <code>%s</code> as a Webhook URL in your Stripe account at Stripe > Dashboard > Settings > Webhooks. My Tickets: Stripe will attempt to configure your webhook automatically when you save your Stripe API keys.', 'my-tickets-stripe' ), add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) );
 		}
 	} else {
+		// Translators: Webhook URL.
 		$note = sprintf( __( 'You need to add <code>%s</code> as a Webhook URL in your Stripe account at Stripe > Dashboard > Settings > Webhooks. My Tickets: Stripe will attempt to configure your webhook automatically when you save your Stripe API keys.', 'my-tickets-stripe' ), add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) );
 	}
 
@@ -282,7 +294,7 @@ function mt_setup_stripe( $gateways ) {
 			'prod_secret'     => __( 'API Secret Key (Production)', 'my-tickets-stripe' ),
 			'test_public'     => __( 'API Publishable Key (Test)', 'my-tickets-stripe' ),
 			'test_secret'     => __( 'API Secret Key (Test)', 'my-tickets-stripe' ),
-			'test_mode' => array(
+			'test_mode'       => array(
 				'label' => __( 'Test Mode Enabled', 'my-tickets-stripe' ),
 				'type'  => 'checkbox',
 				'value' => 'true',
@@ -302,20 +314,20 @@ function mt_setup_stripe( $gateways ) {
 		'note' => $note,
 	);
 
-/**
- * Needs further work; take live when completed. But I can add multiple gateways within one plug-in. Woot.
-	$gateways['iban'] = array(
-		'label'    => __( 'IBAN', 'my-tickets-stripe' ),
-		'selector' => __( 'Gateway selector label', 'my-tickets-stripe' ),
-		'note'     => __( 'There are no extra settings required to use International Bank Account Numbers with Stripe.', 'my-tickets-stripe' ),
-	);
+	/**
+	 * Needs further work; take live when completed. But I can add multiple gateways within one plug-in. Woot.
+		$gateways['iban'] = array(
+			'label'    => __( 'IBAN', 'my-tickets-stripe' ),
+			'selector' => __( 'Gateway selector label', 'my-tickets-stripe' ),
+			'note'     => __( 'There are no extra settings required to use International Bank Account Numbers with Stripe.', 'my-tickets-stripe' ),
+		);
 
-	$gateways['ideal'] = array(
-		'label'    => __( 'iDEAL', 'my-tickets-stripe' ),
-		'selector' => __( 'Gateway selector label', 'my-tickets-stripe' ),
-		'note'     => __( 'There are no extra settings required to use iDEAL Bank with Stripe.', 'my-tickets-stripe' ),
-	);
-*/
+		$gateways['ideal'] = array(
+			'label'    => __( 'iDEAL', 'my-tickets-stripe' ),
+			'selector' => __( 'Gateway selector label', 'my-tickets-stripe' ),
+			'note'     => __( 'There are no extra settings required to use iDEAL Bank with Stripe.', 'my-tickets-stripe' ),
+		);
+	*/
 	return $gateways;
 }
 
@@ -329,7 +341,7 @@ add_filter( 'mt_shipping_fields', 'mt_stripe_shipping_fields', 10, 2 );
  * @return string $form updated.
  */
 function mt_stripe_shipping_fields( $form, $gateway ) {
-	if ( 'stripe' == $gateway ) {
+	if ( 'stripe' === $gateway ) {
 		$search  = array(
 			'mt_shipping_street',
 			'mt_shipping_street2',
@@ -352,9 +364,9 @@ function mt_stripe_shipping_fields( $form, $gateway ) {
 
 	return $form;
 }
-
 add_filter( 'mt_response_messages', 'mt_stripe_messages', 10, 2 );
-/*
+
+/**
  * Feeds custom response messages to return page (cart)
  *
  * @param string $message Current messages.
@@ -363,12 +375,12 @@ add_filter( 'mt_response_messages', 'mt_stripe_messages', 10, 2 );
  * @return string New message.
  */
 function mt_stripe_messages( $message, $code ) {
-	if ( isset( $_GET['gateway'] ) && 'stripe' == $_GET['gateway'] || 'ideal' == $_GET['gateway'] || 'iban' == $_GET['gateway'] ) {
+	if ( isset( $_GET['gateway'] ) && 'stripe' === $_GET['gateway'] || 'ideal' === $_GET['gateway'] || 'iban' === $_GET['gateway'] ) {
 		$options = array_merge( mt_default_settings(), get_option( 'mt_settings' ) );
-		if ( 1 == $code || 'thanks' == $code ) {
-			$payment_id     = absint( $_GET['payment_id'] );
-			$receipt_id     = get_post_meta( $payment_id, '_receipt', true );
-			$receipt        = esc_url( add_query_arg( array( 'receipt_id' => $receipt_id ), get_permalink( $options['mt_receipt_page'] ) ) );
+		if ( '1' === (string) $code || 'thanks' === $code ) {
+			$payment_id = absint( $_GET['payment_id'] );
+			$receipt_id = get_post_meta( $payment_id, '_receipt', true );
+			$receipt    = esc_url( add_query_arg( array( 'receipt_id' => $receipt_id ), get_permalink( $options['mt_receipt_page'] ) ) );
 			// If payment status has not yet transitioned to completed, notify purchaser.
 			if ( 'Completed' !== get_post_meta( $payment_id, '_is_paid', true ) ) {
 				// Translators: URL to view receipt.
@@ -380,15 +392,15 @@ function mt_stripe_messages( $message, $code ) {
 		} else {
 			$reason = isset( $_GET['reason'] ) ? stripslashes( urldecode( $_GET['reason'] ) ) : __( 'Unknown failure.', 'my-tickets-stripe' );
 			// Translators: Error message from Stripe.
-			return sprintf( __( 'Sorry, an error occurred: %s', 'my-tickets-stripe' ), "<strong>" . sanitize_text_field( $reason ) . "</strong>" );
+			return sprintf( __( 'Sorry, an error occurred: %s', 'my-tickets-stripe' ), '<strong>' . sanitize_text_field( $reason ) . '</strong>' );
 		}
 	}
 
 	return $message;
 }
-
 add_filter( 'mt_gateway', 'mt_gateway_stripe', 10, 3 );
-/*
+
+/**
  * Generates purchase form to be displayed under shopping cart confirmation.
  *
  * @param string $form Existing form.
@@ -398,23 +410,23 @@ add_filter( 'mt_gateway', 'mt_gateway_stripe', 10, 3 );
  * @return string
  */
 function mt_gateway_stripe( $form, $gateway, $args ) {
-	if ( 'stripe' == $gateway || 'ideal' == $gateway || 'iban' == $gateway ) {
+	if ( 'stripe' === $gateway || 'ideal' === $gateway || 'iban' === $gateway ) {
 		$options    = array_merge( mt_default_settings(), get_option( 'mt_settings' ) );
 		$payment_id = $args['payment'];
 		$amount     = (float) $args['total'];
 		$handling   = ( isset( $options['mt_handling'] ) ) ? (float) $options['mt_handling'] : 0;
-		$shipping   = ( 'postal' == $args['method'] ) ? (float) $options['mt_shipping'] : 0;
+		$shipping   = ( 'postal' === $args['method'] ) ? (float) $options['mt_shipping'] : 0;
 		$total      = ( mt_zerodecimal_currency() ) ? ( $amount + $handling + $shipping ) : ( $amount + $handling + $shipping ) * 100;
 		$purchaser  = get_the_title( $payment_id );
 
-		$url  = mt_replace_http( add_query_arg( 'mt_stripe_ipn', 'true', trailingslashit( home_url() ) ) );
-		if ( 'stripe' == $gateway ) {
+		$url = mt_replace_http( add_query_arg( 'mt_stripe_ipn', 'true', trailingslashit( home_url() ) ) );
+		if ( 'stripe' === $gateway ) {
 			$form = mt_stripe_form( $url, $payment_id, $total, $args );
 		}
-		if ( 'ideal' == $gateway ) {
+		if ( 'ideal' === $gateway ) {
 			$form = mt_stripe_form( $url, $payment_id, $total, $args, 'ideal' );
 		}
-		if ( 'iban' == $gateway ) {
+		if ( 'iban' === $gateway ) {
 			$form = mt_stripe_form( $url, $payment_id, $total, $args, 'iban' );
 		}
 	}
@@ -425,7 +437,7 @@ function mt_gateway_stripe( $form, $gateway, $args ) {
 /**
  * Set up form for making a Stripe payment.
  *
- * @param string  $url $url to send query to. (Unused)
+ * @param string  $url $url to send query to. (Unused).
  * @param integer $payment_id ID for this payment.
  * @param float   $total Total amount of payment.
  * @param array   $args Payment arguments.
@@ -443,8 +455,8 @@ function mt_stripe_form( $url, $payment_id, $total, $args, $method = 'stripe' ) 
 	$stripe_options = $options['mt_gateways']['stripe'];
 	$purchase_page  = get_permalink( $options['mt_purchase_page'] );
 
-	// check if we are using test mode
-	if ( isset( $stripe_options['test_mode'] ) && 'true' == $stripe_options['test_mode'] ) {
+	// check if we are using test mode.
+	if ( isset( $stripe_options['test_mode'] ) && 'true' === $stripe_options['test_mode'] ) {
 		$secret_key = trim( $stripe_options['test_secret'] );
 	} else {
 		$secret_key = trim( $stripe_options['prod_secret'] );
@@ -463,28 +475,31 @@ function mt_stripe_form( $url, $payment_id, $total, $args, $method = 'stripe' ) 
 		// Character limit for description value is 500.
 		$events     = array_keys( get_post_meta( $payment_id, '_purchase_data', true ) );
 		$event_list = array();
-		foreach( $events as $key => $event ) {
+		foreach ( $events as $key => $event ) {
 			$event_list[] = get_the_title( $event );
 		}
-		$purchased   = implode( ', ', $event_list );
+		$purchased = implode( ', ', $event_list );
+		// Translators: blog name, comma-separated list of events represented in this purchase.
 		$description = sprintf( __( 'Tickets from %1$s: (%2$s)', 'my-tickets-stripe' ), get_bloginfo( 'name' ), $purchased );
 		if ( 500 >= strlen( $description ) ) {
 			$description = substr( $description, 0, 497 ) . '...';
 		}
-		$intent      = \Stripe\PaymentIntent::create([
-			'amount'               => $total,
-			'currency'             => $options['mt_currency'],
-			'payment_method_types' => ['card'],
-			'statement_descriptor' => strtoupper( substr( sanitize_text_field( str_replace( $remove, '', $blogname ) ), 0, 22 ) ),
-			'metadata'             => array( 'payment_id' => $payment_id ),
-			'description'          => $description,
-		]);
+		$intent = \Stripe\PaymentIntent::create(
+			array(
+				'amount'               => $total,
+				'currency'             => $options['mt_currency'],
+				'payment_method_types' => ['card'],
+				'statement_descriptor' => strtoupper( substr( sanitize_text_field( str_replace( $remove, '', $blogname ) ), 0, 22 ) ),
+				'metadata'             => array( 'payment_id' => $payment_id ),
+				'description'          => $description,
+			)
+		);
 		update_post_meta( $payment_id, '_mt_payment_intent_id', $intent->id );
 	} else {
 		$intent = \Stripe\PaymentIntent::retrieve( $intent_id );
 	}
 
-	$form  = '<form id="mt-payment-form" action="/charge" method="post">
+	$form = '<form id="mt-payment-form" action="/charge" method="post">
 	<div class="mt-stripe-hidden-fields">
 		<input type="hidden" name="_wp_stripe_nonce" value="' . esc_attr( $nonce ) . '" />
 		<input type="hidden" name="_mt_action" value="' . esc_attr( $method ) . '" />
@@ -493,12 +508,12 @@ function mt_stripe_form( $url, $payment_id, $total, $args, $method = 'stripe' ) 
 		<input type="hidden" name="amount" value="' . esc_attr( $total ) . '" />
 	</div>
 	<div class="stripe">';
-	// Hidden form fields
+	// Hidden form fields.
 	$form .= apply_filters( 'mt_stripe_form', '', 'stripe', $args );
 	if ( 'stripe' === $method ) {
 		$form .= "<div id='mt-card'>
 				<p class='form-row'>
-				  <label for='mt_name'>" . __( 'Name', 'my-tickets-stripe' ) . "</label><input id='mt_name' name='name' value='". esc_attr( $name ) . "' required>
+				  <label for='mt_name'>" . __( 'Name', 'my-tickets-stripe' ) . "</label><input id='mt_name' name='name' value='" . esc_attr( $name ) . "' required>
 				</p>
 				<p class='form-row'>
 				  <label for='mt_email'>" . __( 'Email Address', 'my-tickets-stripe' ) . "</label><input id='mt_email' name='email' type='email' value='" . esc_attr( $email ) . "'  required>
@@ -510,7 +525,7 @@ function mt_stripe_form( $url, $payment_id, $total, $args, $method = 'stripe' ) 
 			</div>";
 	}
 	// iban and ideal are not currently available.
-	if ( 'iban' == $method ) {
+	if ( 'iban' === $method ) {
 		$form .= '
 			<div id="mt-iban">
 				<div class="form-row inline">
@@ -529,17 +544,11 @@ function mt_stripe_form( $url, $payment_id, $total, $args, $method = 'stripe' ) 
 				</div>
 				<div id="bank-name" role="alert"></div>
 				<div id="mandate-acceptance">
-					<p>' . __( 'By providing your IBAN and confirming this payment, you are
-					authorizing Rocketship Inc. and Stripe, our payment service
-					provider, to send instructions to your bank to debit your account and
-					your bank to debit your account in accordance with those instructions.
-					You are entitled to a refund from your bank under the terms and
-					conditions of your agreement with your bank. A refund must be claimed
-					within 8 weeks starting from the date on which your account was debited.', 'my-tickets-stripe' ) . '</p>
+					<p>' . __( 'By providing your IBAN and confirming this payment, you are authorizing Rocketship Inc. and Stripe, our payment service provider, to send instructions to your bank to debit your account and your bank to debit your account in accordance with those instructions. You are entitled to a refund from your bank under the terms and conditions of your agreement with your bank. A refund must be claimed within 8 weeks starting from the date on which your account was debited.', 'my-tickets-stripe' ) . '</p>
 				</div>
 			</div>';
 	}
-	if ( 'ideal' == $method ) {
+	if ( 'ideal' === $method ) {
 		$form .= '
 			<div id="mt-ideal">
 				<div class="form-row">
@@ -557,7 +566,7 @@ function mt_stripe_form( $url, $payment_id, $total, $args, $method = 'stripe' ) 
 	}
 	// Ability to disable billing address.
 	if ( ! isset( $stripe_options['disable_address'] ) || 'off' !== $stripe_options['disable_address'] ) {
-	$form .= '<div class="address section">
+		$form .= '<div class="address section">
 		<fieldset>
 		<legend>' . __( 'Billing Address', 'my-tickets-stripe' ) . '</legend>
 			<p class="form-row">
@@ -611,7 +620,7 @@ function mt_stripe_enqueue_scripts() {
 		$stripe_options = isset( $options['mt_gateways']['stripe'] ) ? $options['mt_gateways']['stripe'] : array();
 		if ( ! empty( $stripe_options ) ) {
 			// check if we are using test mode.
-			if ( isset( $stripe_options['test_mode'] ) && 'true' == $stripe_options['test_mode'] ) {
+			if ( isset( $stripe_options['test_mode'] ) && 'true' === $stripe_options['test_mode'] ) {
 				$publishable = trim( $stripe_options['test_public'] );
 			} else {
 				$publishable = trim( $stripe_options['prod_public'] );
@@ -628,7 +637,7 @@ function mt_stripe_enqueue_scripts() {
 				),
 				get_permalink( $options['mt_purchase_page'] )
 			);
-			$security = wp_create_nonce( 'mts_ajax_stripe' );
+			$security   = wp_create_nonce( 'mts_ajax_stripe' );
 			wp_localize_script(
 				'mt.stripe',
 				'mt_stripe',
@@ -684,14 +693,14 @@ add_action( 'mt_license_fields', 'mt_stripe_license_field' );
 /**
  * Insert license key field onto license keys page.
  *
- * @param $fields string Existing fields.
+ * @param string $fields Existing fields.
  *
  * @return string
  */
 function mt_stripe_license_field( $fields ) {
 	$field  = 'mt_stripe_license_key';
-	$active = ( 'valid' == get_option( 'mt_stripe_license_key_valid' ) ) ? ' <span class="license-activated">(active)</span>' : '';
-	$name   =  __( 'My Tickets: Stripe', 'my-tickets-stripe' );
+	$active = ( 'valid' === get_option( 'mt_stripe_license_key_valid' ) ) ? ' <span class="license-activated">(active)</span>' : '';
+	$name   = __( 'My Tickets: Stripe', 'my-tickets-stripe' );
 	return $fields . "
 	<p class='license'>
 		<label for='$field'>$name$active</label><br/>
@@ -710,7 +719,7 @@ add_action( 'mt_save_license', 'mt_stripe_save_license', 10, 2 );
  */
 function mt_stripe_save_license( $response, $post ) {
 	$field  = 'mt_stripe_license_key';
-	$name   =  __( 'My Tickets: Stripe', 'my-tickets-stripe' );
+	$name   = __( 'My Tickets: Stripe', 'my-tickets-stripe' );
 	$verify = mt_verify_key( $field, EDD_MT_STRIPE_ITEM_NAME, EDD_MT_STRIPE_STORE_URL );
 	$verify = "<li>$verify</li>";
 
@@ -718,7 +727,7 @@ function mt_stripe_save_license( $response, $post ) {
 }
 
 // these are existence checkers. Exist if licensed.
-if ( 'valid' == get_option( 'mt_stripe_license_key_valid' ) ) {
+if ( 'valid' === get_option( 'mt_stripe_license_key_valid' ) ) {
 	/**
 	 * I don't believe this is being used.
 	 *

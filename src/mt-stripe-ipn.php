@@ -15,16 +15,15 @@ add_action( 'mt_receive_ipn', 'mt_stripe_ipn' );
  *
  * Handles the charge.refunded event & source.chargeable events.
  * Uses do_action( 'mt_stripe_event', $charge ) if you want custom handling.
- *
  */
 function mt_stripe_ipn() {
-	if ( isset( $_REQUEST['mt_stripe_ipn'] ) && 'true' == $_REQUEST['mt_stripe_ipn'] ) {
+	if ( isset( $_REQUEST['mt_stripe_ipn'] ) && 'true' === $_REQUEST['mt_stripe_ipn'] ) {
 		global $mt_stripe_version;
 
 		$options = array_merge( mt_default_settings(), get_option( 'mt_settings' ) );
 		// these all need to be set from Stripe data.
 		$stripe_options = $options['mt_gateways']['stripe'];
-		if ( isset( $stripe_options['test_mode'] ) && 'true' == $stripe_options['test_mode'] ) {
+		if ( isset( $stripe_options['test_mode'] ) && 'true' === $stripe_options['test_mode'] ) {
 			$secret_key = trim( $stripe_options['test_secret'] );
 		} else {
 			$secret_key = trim( $stripe_options['prod_secret'] );
@@ -33,7 +32,7 @@ function mt_stripe_ipn() {
 			return;
 		}
 		\Stripe\Stripe::setAppInfo(
-			"WordPress MyTicketsStripe",
+			'WordPress MyTicketsStripe',
 			$mt_stripe_version,
 			'https://www.joedolson.com/contact/'
 		);
@@ -56,10 +55,10 @@ function mt_stripe_ipn() {
 
 			try {
 				// to verify this is a real event, we re-retrieve the event from Stripe.
-				$event      = \Stripe\Event::retrieve( $event_id );
-				$object     = $event->data->object->object;
+				$event  = \Stripe\Event::retrieve( $event_id );
+				$object = $event->data->object->object;
 
-				switch( $object ) {
+				switch ( $object ) {
 					case 'charge':
 						$object     = $event->data->object;
 						$payment_id = $object->metadata->payment_id;
@@ -72,7 +71,7 @@ function mt_stripe_ipn() {
 					default:
 						// Need to return 200 on all other situations.
 						status_header( 200 );
-						die();
+						die;
 				}
 				do_action( 'mt_stripe_event', $object );
 
@@ -83,12 +82,12 @@ function mt_stripe_ipn() {
 				// Return an HTTP 202 (Accepted) to stop repeating this event.
 				// An error is thrown if an event is sent to the site for a transaction in test mode after the site is switched to live mode or vice versa.
 				status_header( 202 );
-				die();
+				die;
 			}
-			switch( $event->type ) {
+			switch ( $event->type ) {
 				case 'charge.refunded':
 					$status  = get_post_meta( $payment_id, '_is_paid', true );
-					if ( ! ( 'Refunded' == $status ) ) {
+					if ( ! ( 'Refunded' === $status ) ) {
 						$details = array(
 							'id'    => $payment_id,
 							'name'  => get_the_title( $payment_id ),
@@ -100,21 +99,21 @@ function mt_stripe_ipn() {
 					} else {
 						status_header( 202 );
 					}
-					die();
+					die;
 					break;
 				// Successful payment.
 				case 'payment_intent.succeeded':
-					$status  = get_post_meta( $payment_id, '_is_paid', true );
-					if ( ! ( 'Completed' == $status ) ) {
-						$paid           = $object->amount_received; 
+					$status = get_post_meta( $payment_id, '_is_paid', true );
+					if ( ! ( 'Completed' === $status ) ) {
+						$paid           = $object->amount_received;
 						$transaction_id = $object->id;
-						$receipt_id     = get_post_meta( $payment_id, '_receipt', true ); 
+						$receipt_id     = get_post_meta( $payment_id, '_receipt', true );
 						$payment_status = 'Completed';
 						$payer_name     = get_the_title( $payment_id );
 						$names          = explode( ' ', $payer_name );
 						$first_name     = array_shift( $names );
 						$last_name      = implode( ' ', $names );
-						$bill_address  = array(
+						$bill_address   = array(
 							'street'  => $object->charges->data[0]->billing_details->address->line1,
 							'street2' => $object->charges->data[0]->billing_details->address->line2,
 							'city'    => $object->charges->data[0]->billing_details->address->city,
@@ -125,7 +124,7 @@ function mt_stripe_ipn() {
 						// This is temporary; need to get it somehow.
 						$shipping_address = get_post_meta( $payment_id, '_mts_shipping', true );
 						if ( $shipping_address ) {
-							$ship_address  = array(
+							$ship_address = array(
 								'street'  => strip_tags( $shipping_address['street'] ),
 								'street2' => strip_tags( $shipping_address['street2'] ),
 								'city'    => strip_tags( $shipping_address['city'] ),
@@ -148,20 +147,19 @@ function mt_stripe_ipn() {
 							'status'         => $payment_status,
 							'purchase_id'    => $payment_id,
 							'shipping'       => $ship_address,
-							//'billing'        => $bill_address, // Pending support in My Tickets.
 						);
 						mt_handle_payment( 'VERIFIED', '200', $data, $_REQUEST );
 					}
 					status_header( 200 );
-					die();
+					die;
 					break;
 				default:
 					status_header( 200 );
-					die();
+					die;
 			}
 		} else {
 			status_header( 400 );
-			die();
+			die;
 		}
 	}
 
