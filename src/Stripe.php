@@ -70,13 +70,17 @@ if ( ! class_exists( 'EDD_SL_Plugin_Updater' ) ) {
 
 // setup the updater.
 if ( class_exists( 'EDD_SL_Plugin_Updater' ) ) { // prevent fatal error if doesn't exist for some reason.
-	$edd_updater = new EDD_SL_Plugin_Updater( EDD_MT_STRIPE_STORE_URL, __FILE__, array(
-		'version'   => $mt_stripe_version,								// current version number.
-		'license'   => trim( get_option( 'mt_stripe_license_key' ) ),	// license key.
-		'item_name' => EDD_MT_STRIPE_ITEM_NAME,							// name of this plugin.
-		'author'    => 'Joe Dolson',									// author of this plugin.
-		'url'       => home_url(),
-	) );
+	$edd_updater = new EDD_SL_Plugin_Updater(
+		EDD_MT_STRIPE_STORE_URL,
+		__FILE__,
+		array(
+			'version'   => $mt_stripe_version, // current version number.
+			'license'   => trim( get_option( 'mt_stripe_license_key' ) ), // license key.
+			'item_name' => EDD_MT_STRIPE_ITEM_NAME, // name of this plugin.
+			'author'    => 'Joe Dolson', // author of this plugin.
+			'url'       => home_url(),
+		)
+	);
 }
 
 /**
@@ -97,12 +101,12 @@ require_once( 'mt-stripe-ipn.php' );
 function mt_stripe_supported() {
 	return array( 'AED', 'ALL', 'ANG', 'AUD', 'AWG', 'BBD', 'BDT', 'BIF', 'BMD', 'BND', 'BOB', 'BRL', 'BSD', 'BWP', 'BZD', 'CAD', 'CHF', 'CLP', 'CNY', 'COP', 'CRC', 'CVE', 'CZK', 'DJF', 'DKK', 'DOP', 'DZD', 'EGP', 'ETB', 'EUR', 'FJD', 'FKP', 'GBP', 'GIP', 'GMD', 'GNF', 'GTQ', 'GYD', 'HKD', 'HNL', 'HRK', 'HTG', 'HUF', 'IDR', 'ILS', 'INR', 'ISK', 'JMD', 'JPY', 'KES', 'KHR', 'KMF', 'KRW', 'KYD', 'KZT', 'LAK', 'LBP', 'LKR', 'LRD', 'MAD', 'MDL', 'MNT', 'MOP', 'MRO', 'MUR', 'MVR', 'MWK', 'MXN', 'MYR', 'NAD', 'NGN', 'NIO', 'NOK', 'NPR', 'NZD', 'PAB', 'PEN', 'PGK', 'PHP', 'PKR', 'PLN', 'PYG', 'QAR', 'RUB', 'SAR', 'SBD', 'SCR', 'SEK', 'SGD', 'SHP', 'SLL', 'SOS', 'STD', 'SVC', 'SZL', 'THB', 'TOP', 'TTD', 'TWD', 'TZS', 'UAH', 'UGX', 'USD', 'UYU', 'UZS', 'VND', 'VUV', 'WST', 'XAF', 'XOF', 'YER', 'ZAR' );
 }
-
 add_filter( 'mt_currencies', 'mt_stripe_currencies', 10, 1 );
+
 /**
  * If this gateway is active, limit currencies to supported currencies.
  *
- * @param $currencies Currencies supported.
+ * @param array $currencies Currencies supported.
  *
  * @return return full currency array.
  */
@@ -117,7 +121,7 @@ function mt_stripe_currencies( $currencies ) {
 		$return = array();
 		foreach ( $stripe as $currency ) {
 			$keys = array_keys( $currencies );
-			if ( in_array( $currency, $keys ) ) {
+			if ( in_array( $currency, $keys, true ) ) {
 				$return[ $currency ] = $currencies[ $currency ];
 			}
 		}
@@ -133,12 +137,12 @@ add_filter( 'mt_settings', 'mt_stripe_settings', 10, 2 );
  * When settings are saved, check for Stripe keys. If added or changed, create endpoint.
  *
  * @param array $settings New settings.
- * @param array $post POST data
- * 
+ * @param array $post POST data.
+ *
  * @return settings
  */
 function mt_stripe_settings( $settings, $post ) {
-	if ( isset( $_GET['page'] ) && 'mt-payment' == $_GET['page'] ) {
+	if ( isset( $_GET['page'] ) && 'mt-payment' === $_GET['page'] ) {
 		$new_options = array_merge( mt_default_settings(), $settings );
 		$old_options = array_merge( mt_default_settings(), get_option( 'mt_settings' ) );
 		// these all need to be set from Stripe data.
@@ -150,16 +154,16 @@ function mt_stripe_settings( $settings, $post ) {
 		$live_secret_key  = trim( $nstripe_options['prod_secret'] );
 		$live_osecret_key = isset( $ostripe_options['prod_secret'] ) ? trim( $ostripe_options['prod_secret'] ) : '';
 
-		$test_secret_key = ( $test_secret_key != $test_osecret_key && '' != $test_secret_key ) ? $test_secret_key : false;
-		$live_secret_key = ( $live_secret_key != $live_osecret_key && '' != $live_secret_key ) ? $live_secret_key : false;
+		$test_secret_key = ( $test_secret_key !== $test_osecret_key && '' !== $test_secret_key ) ? $test_secret_key : false;
+		$live_secret_key = ( $live_secret_key !== $live_osecret_key && '' !== $live_secret_key ) ? $live_secret_key : false;
 
 		$updates  = ( isset( $_POST['mt_gateways'] ) ) ? $_POST['mt_gateways'] : false;
 		$runsetup = false;
 		if ( $updates && isset( $updates['stripe']['update_webhooks'] ) ) {
 			$runsetup = true;
 			// If requesting runsetup, ensure there is an API key set.
-			$test_secret_key = ( $test_secret_key != $test_osecret_key && '' != $test_secret_key ) ? $test_secret_key : $test_osecret_key;
-			$live_secret_key = ( $live_secret_key != $live_osecret_key && '' != $live_secret_key ) ? $live_secret_key : $live_osecret_key;
+			$test_secret_key = ( $test_secret_key !== $test_osecret_key && '' !== (string) $test_secret_key ) ? $test_secret_key : $test_osecret_key;
+			$live_secret_key = ( $live_secret_key !== $live_osecret_key && '' !== (string) $live_secret_key ) ? $live_secret_key : $live_osecret_key;
 		}
 
 		if ( $test_secret_key || $runsetup ) {
@@ -205,7 +209,7 @@ function mt_setup_stripe( $gateways ) {
 		$test_webhook_id = get_option( 'mt_stripe_test_webhook', false );
 		$live_secret_key      = trim( $stripe_options['prod_secret'] );
 		$live_webhook_id = get_option( 'mt_stripe_live_webhook', false );
-		
+
 		$setup = ( $test_secret_key && $live_secret_key ) ? true : false;
 	} else {
 		$setup = false;
@@ -627,8 +631,8 @@ function mt_stripe_enqueue_scripts() {
 			$security = wp_create_nonce( 'mts_ajax_stripe' );
 			wp_localize_script(
 				'mt.stripe',
-				'mt_stripe', 
-				array( 
+				'mt_stripe',
+				array(
 					'publishable_key'     => $publishable,
 					'currency'            => $options['mt_currency'],
 					'purchase_descriptor' => __( 'Ticket Order', 'my-tickets-stripe' ),
