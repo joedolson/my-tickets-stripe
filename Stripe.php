@@ -457,13 +457,13 @@ function mt_stripe_form( $url, $payment_id, $total, $args, $method = 'stripe' ) 
 	\Stripe\Stripe::setApiKey( $secret_key );
 	if ( ! $intent_id ) {
 		// Character limit for description value is 500.
-		$events      = mt_list_events( $payment_id );
-		$event_list  = array();
-		foreach( $events as $event ) {
-			$event_list = get_the_title( $event );
+		$events     = array_keys( get_post_meta( $payment_id, '_purchase_data', true ) );
+		$event_list = array();
+		foreach( $events as $key => $event ) {
+			$event_list[] = get_the_title( $event );
 		}
 		$purchased   = implode( ', ', $event_list );
-		$description = sprintf( __( 'Tickets Purchased from %1$s: (%2$s)', 'my-tickets-stripe' ), get_bloginfo( 'name' ), $purchased );
+		$description = sprintf( __( 'Tickets from %1$s: (%2$s)', 'my-tickets-stripe' ), get_bloginfo( 'name' ), $purchased );
 		if ( 500 >= strlen( $description ) ) {
 			$description = substr( $description, 0, 497 ) . '...';
 		}

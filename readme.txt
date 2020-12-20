@@ -25,6 +25,10 @@ New or updated translations are always appreciated. The translation files are in
 
 == Changelog ==
 
+= 1.2.10 =
+
+* Bug fix: Event-specific references used a function accessing data that doesn't exist yet at payment creation.
+
 = 1.2.9 =
 
 * Change: pass event-specific references in purchase description.
