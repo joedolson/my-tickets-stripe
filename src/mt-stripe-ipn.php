@@ -86,7 +86,7 @@ function mt_stripe_ipn() {
 			}
 			switch ( $event->type ) {
 				case 'charge.refunded':
-					$status  = get_post_meta( $payment_id, '_is_paid', true );
+					$status = get_post_meta( $payment_id, '_is_paid', true );
 					if ( ! ( 'Refunded' === $status ) ) {
 						$details = array(
 							'id'    => $payment_id,

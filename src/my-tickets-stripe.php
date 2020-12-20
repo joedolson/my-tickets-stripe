@@ -246,7 +246,7 @@ function mt_setup_stripe( $gateways ) {
 		} else {
 			$live_endpoint = (object) array(
 				'status' => 'not created',
-				'url' => add_query_arg( 'mt_stripe_ipn', 'true', home_url() )
+				'url'    => add_query_arg( 'mt_stripe_ipn', 'true', home_url() ),
 			);
 		}
 		// Translators: Live webhook URL, live webhook status, test webhook URL.
@@ -264,7 +264,7 @@ function mt_setup_stripe( $gateways ) {
 		\Stripe\Stripe::setApiKey( $live_secret_key );
 		$endpoints = \Stripe\WebhookEndpoint::all( array( 'limit' => 10 ) );
 		foreach ( $endpoints as $endpoint ) {
-			if ( $endpoint->url === add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) ) {
+			if ( add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) === $endpoint->url ) {
 				// Translators: Webhook URL.
 				$note = sprintf( __( 'You have an existing live Stripe webhook at <code>%s</code>.', 'my-tickets-stripe' ), $endpoint->url );
 			}
@@ -272,7 +272,7 @@ function mt_setup_stripe( $gateways ) {
 		\Stripe\Stripe::setApiKey( $test_secret_key );
 		$endpoints = \Stripe\WebhookEndpoint::all( array( 'limit' => 10 ) );
 		foreach ( $endpoints as $endpoint ) {
-			if ( $endpoint->url === add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) ) {
+			if ( add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) === $endpoint->url ) {
 				// Translators: Webhook URL.
 				$note .= ' ' . sprintf( __( 'You have an existing test Stripe webhook at <code>%s</code>.', 'my-tickets-stripe' ), $endpoint->url );
 			}
@@ -311,7 +311,7 @@ function mt_setup_stripe( $gateways ) {
 				'value' => 'off',
 			),
 		),
-		'note' => $note,
+		'note'   => $note,
 	);
 
 	/**
@@ -404,8 +404,8 @@ add_filter( 'mt_gateway', 'mt_gateway_stripe', 10, 3 );
  * Generates purchase form to be displayed under shopping cart confirmation.
  *
  * @param string $form Existing form.
- * @param string $gateway name of gateway
- * @param array  $args data for current cart
+ * @param string $gateway name of gateway.
+ * @param array  $args data for current cart.
  *
  * @return string
  */
@@ -488,7 +488,7 @@ function mt_stripe_form( $url, $payment_id, $total, $args, $method = 'stripe' ) 
 			array(
 				'amount'               => $total,
 				'currency'             => $options['mt_currency'],
-				'payment_method_types' => ['card'],
+				'payment_method_types' => array( 'card' ),
 				'statement_descriptor' => strtoupper( substr( sanitize_text_field( str_replace( $remove, '', $blogname ) ), 0, 22 ) ),
 				'metadata'             => array( 'payment_id' => $payment_id ),
 				'description'          => $description,
