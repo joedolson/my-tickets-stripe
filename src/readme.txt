@@ -28,6 +28,8 @@ New or updated translations are always appreciated. The translation files are in
 = 1.2.10 =
 
 * Bug fix: Event-specific references used a function accessing data that doesn't exist yet at payment creation.
+* Implement PHP tests.
+* Change main plug-in file name.
 
 = 1.2.9 =
 
@@ -151,3 +153,5 @@ Brand new plug-in - nothing asked yet!
 == Screenshots ==
 
 == Upgrade Notice ==
+
+* Following this update, you will need to re-activate the plug-in, due to a filename change.
