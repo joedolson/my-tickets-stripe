@@ -17,7 +17,7 @@
  * License:     GPL-2.0+
  * License URI: http://www.gnu.org/license/gpl-2.0.txt
  * Domain Path: lang
- * Version:     1.2.9
+ * Version:     1.2.10
  */
 
 /*
@@ -39,7 +39,7 @@
 */
 
 global $mt_stripe_version;
-$mt_stripe_version = '1.2.9';
+$mt_stripe_version = '1.2.10';
 load_plugin_textdomain( 'my-tickets-stripe', false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
 
 add_action( 'admin_notices', 'mt_stripe_mt_version' );
@@ -47,13 +47,21 @@ add_action( 'admin_notices', 'mt_stripe_mt_version' );
  * Check that the current version of My Tickets is supported.
  */
 function mt_stripe_mt_version() {
-	if ( ! function_exists( 'mt_get_current_version' ) ) {
-		// function mt_get_current_version added in My Tickets 1.4.0.
-		$message = sprintf( __( 'My Tickets: Stripe requires at least <strong>My Tickets 1.4.0</strong>. Please update My Tickets!', 'my-tickets-stripe' ) );
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return;
-		} else {
-			echo "<div class='error'><p>$message</p></div>";
+	global $current_screen;
+	if ( isset( $_GET['page'] ) && 'my-tickets' === $_GET['page'] || 'mt-payment' === $_GET['page'] || 'plugins' === $current_screen->id ) {
+		if ( ! function_exists( 'mt_get_current_version' ) ) {
+			// function mt_get_current_version added in My Tickets 1.4.0.
+			$message = sprintf( __( 'My Tickets: Stripe requires at least <strong>My Tickets 1.4.0</strong>. Please update My Tickets!', 'my-tickets-stripe' ) );
+			if ( ! current_user_can( 'manage_options' ) ) {
+				return;
+			} else {
+				echo "<div class='error'><p>$message</p></div>";
+			}
+		}
+		global $mt_stripe_version;
+		if ( version_compare( '1.3.0', $mt_stripe_version, '>' ) ) {
+			$message = __( 'Updating to  My Tickets: Stripe v.1.3.0, expected in January 2021, will result in an automatic deactivation of the plug-in, due to a file name change. You will need to re-activate the plug-in following that update.', 'my-tickets-stripe' ); 
+			echo "<div class='notice updated'><p>$message</p></div>";
 		}
 	}
 }

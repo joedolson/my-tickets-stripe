@@ -5,7 +5,7 @@ Tags: my-tickets, stripe
 Requires at least: 4.4
 Tested up to: 5.6
 Requires PHP: 5.6
-Stable tag: 1.2.9
+Stable tag: 1.2.10
 
 Support for Stripe in My Tickets.
 
