@@ -4,7 +4,7 @@
  *
  * @package     My Tickets: Stripe
  * @author      Joe Dolson
- * @copyright   2016-2020 Joe Dolson
+ * @copyright   2016-2021 Joe Dolson
  * @license     GPL-2.0+
  *
  * @wordpress-plugin
@@ -17,11 +17,11 @@
  * License:     GPL-2.0+
  * License URI: http://www.gnu.org/license/gpl-2.0.txt
  * Domain Path: lang
- * Version:     1.2.10
+ * Version:     1.3.0
  */
 
 /*
-	Copyright 2016-2020  Joe Dolson (email : joe@joedolson.com)
+	Copyright 2016-2021  Joe Dolson (email : joe@joedolson.com)
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@
 */
 
 global $mt_stripe_version;
-$mt_stripe_version = '1.2.10';
+$mt_stripe_version = '1.3.0';
 load_plugin_textdomain( 'my-tickets-stripe', false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
 
 add_action( 'admin_notices', 'mt_stripe_mt_version' );
@@ -57,11 +57,6 @@ function mt_stripe_mt_version() {
 			} else {
 				echo "<div class='error'><p>$message</p></div>";
 			}
-		}
-		global $mt_stripe_version;
-		if ( version_compare( '1.3.0', $mt_stripe_version, '>' ) ) {
-			$message = __( 'Updating to  My Tickets: Stripe v.1.3.0, expected in January 2021, will result in an automatic deactivation of the plug-in, due to a file name change. You will need to re-activate the plug-in following that update.', 'my-tickets-stripe' ); 
-			echo "<div class='notice updated'><p>$message</p></div>";
 		}
 	}
 }
