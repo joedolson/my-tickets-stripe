@@ -48,13 +48,11 @@ add_action( 'admin_notices', 'mt_stripe_mt_version' );
  */
 function mt_stripe_mt_version() {
 	global $current_screen;
-	if ( isset( $_GET['page'] ) && 'my-tickets' === $_GET['page'] || 'mt-payment' === $_GET['page'] || 'plugins' === $current_screen->id ) {
+	if ( ( isset( $_GET['page'] ) && ( 'my-tickets' === $_GET['page'] || 'mt-payment' === $_GET['page'] ) ) || 'plugins' === $current_screen->id ) {
 		if ( ! function_exists( 'mt_get_current_version' ) ) {
 			// function mt_get_current_version added in My Tickets 1.4.0.
 			$message = sprintf( __( 'My Tickets: Stripe requires at least <strong>My Tickets 1.4.0</strong>. Please update My Tickets!', 'my-tickets-stripe' ) );
-			if ( ! current_user_can( 'manage_options' ) ) {
-				return;
-			} else {
+			if ( current_user_can( 'manage_options' ) ) {
 				echo "<div class='error'><p>$message</p></div>";
 			}
 		}
@@ -476,12 +474,16 @@ function mt_stripe_form( $url, $payment_id, $total, $args, $method = 'stripe' ) 
 	\Stripe\Stripe::setApiKey( $secret_key );
 	if ( ! $intent_id ) {
 		// Character limit for description value is 500.
-		$events     = array_keys( get_post_meta( $payment_id, '_purchase_data', true ) );
-		$event_list = array();
-		foreach ( $events as $key => $event ) {
-			$event_list[] = get_the_title( $event );
+		$purchase  = get_post_meta( $payment_id, '_purchase_data', true );
+		$purchased = __( 'Event data not available.', 'my-tickets-stripe' );
+		if ( is_array( $purchase ) ) {
+			$events     = array_keys( $purchase );
+			$event_list = array();
+			foreach ( $events as $key => $event ) {
+				$event_list[] = get_the_title( $event );
+			}
+			$purchased = implode( ', ', $event_list );
 		}
-		$purchased = implode( ', ', $event_list );
 		// Translators: blog name, comma-separated list of events represented in this purchase.
 		$description = sprintf( __( 'Tickets from %1$s: (%2$s)', 'my-tickets-stripe' ), get_bloginfo( 'name' ), $purchased );
 		if ( 500 >= strlen( $description ) ) {
