@@ -261,7 +261,7 @@ function mt_setup_stripe( $gateways ) {
 			);
 		}
 		// Translators: Live webhook URL, live webhook status, test webhook URL.
-		$note = sprintf( __( 'Your webhooks point to <code>%1$s</code>. Your live webhook is currently <strong>%2$s</strong>, and your test webhook is <strong>%3$s</strong>.', 'my-tickets-stripe' ), $live_endpoint->url, $live_endpoint->status, $test_endpoint->status );
+		$note = sprintf( __( 'Your webhooks point to <code>%1$s</code>. Your live webhook is currently <strong>%2$s</strong>; your test webhook is <strong>%3$s</strong>.', 'my-tickets-stripe' ), $live_endpoint->url, $live_endpoint->status, $test_endpoint->status );
 
 		$updates  = ( isset( $_POST['mt_gateways'] ) ) ? $_POST['mt_gateways'] : false;
 		$runsetup = false;
@@ -273,20 +273,30 @@ function mt_setup_stripe( $gateways ) {
 
 	} elseif ( $setup ) {
 		\Stripe\Stripe::setApiKey( $live_secret_key );
-		$endpoints = \Stripe\WebhookEndpoint::all( array( 'limit' => 10 ) );
+		$endpoints = \Stripe\WebhookEndpoint::all( array( 'limit' => 16 ) );
+		$count     = 0;
 		foreach ( $endpoints as $endpoint ) {
 			if ( add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) === $endpoint->url ) {
 				// Translators: Webhook URL.
 				$note = sprintf( __( 'You have an existing live Stripe webhook at <code>%s</code>.', 'my-tickets-stripe' ), $endpoint->url );
+				$count++;
 			}
 		}
+		if ( $count > 1 ) {
+			$note .= sprintf( __( 'You currently have multiple live Stripe webhooks pointing to <code>%s</code>. Log-in to your Stripe Dashboard to delete duplicate webhooks. Multiple webhooks can lead to confusing notifications to customers.', 'my-tickets-stripe' ), add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) );
+		}
 		\Stripe\Stripe::setApiKey( $test_secret_key );
-		$endpoints = \Stripe\WebhookEndpoint::all( array( 'limit' => 10 ) );
+		$endpoints = \Stripe\WebhookEndpoint::all( array( 'limit' => 16 ) );
+		$count     = 0;
 		foreach ( $endpoints as $endpoint ) {
 			if ( add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) === $endpoint->url ) {
 				// Translators: Webhook URL.
 				$note .= ' ' . sprintf( __( 'You have an existing test Stripe webhook at <code>%s</code>.', 'my-tickets-stripe' ), $endpoint->url );
+				$count++;
 			}
+		}
+		if ( $count > 1 ) {
+			$note .= sprintf( __( 'You currently have multiple test Stripe webhooks pointing to <code>%s</code>. Log-in to your Stripe Dashboard to delete duplicate webhooks. Multiple webhooks can lead to confusing notifications to customers.', 'my-tickets-stripe' ), add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) );
 		}
 		if ( '' === $note ) {
 			// Translators: Webhook URL.
@@ -295,6 +305,35 @@ function mt_setup_stripe( $gateways ) {
 	} else {
 		// Translators: Webhook URL.
 		$note = sprintf( __( 'You need to add <code>%s</code> as a Webhook URL in your Stripe account at Stripe > Dashboard > Settings > Webhooks. My Tickets: Stripe will attempt to configure your webhook automatically when you save your Stripe API keys.', 'my-tickets-stripe' ), add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) );
+	}
+
+	if ( $live_secret_key && isset( $stripe_options['test_mode'] ) && 'true' !== $stripe_options['test_mode']  ) {
+		\Stripe\Stripe::setApiKey( $live_secret_key );
+		$endpoints = \Stripe\WebhookEndpoint::all( array( 'limit' => 16 ) );
+		$count     = 0;
+		foreach ( $endpoints as $endpoint ) {
+			if ( add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) === $endpoint->url ) {
+				$count++;
+			}
+		}
+		if ( $count > 1 ) {
+			// Translators: Webhook URL.
+			$note .= sprintf( __( 'You currently have multiple live Stripe webhooks pointing to <code>%s</code>. Log-in to your Stripe Dashboard to delete duplicate webhooks. Multiple webhooks can lead to confusing notifications to customers.', 'my-tickets-stripe' ), add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) );
+		}
+	}
+	if ( $test_secret_key && isset( $stripe_options['test_mode'] ) && 'true' === $stripe_options['test_mode'] ) {
+		\Stripe\Stripe::setApiKey( $test_secret_key );
+		$endpoints = \Stripe\WebhookEndpoint::all( array( 'limit' => 16 ) );
+		$count     = 0;
+		foreach ( $endpoints as $endpoint ) {
+			if ( add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) === $endpoint->url ) {
+				$count++;
+			}
+		}
+		if ( $count > 1 ) {
+			// Translators: Webhook URL.
+			$note .= sprintf( __( 'You currently have multiple test Stripe webhooks pointing to <code>%s</code>. Log-in to your Stripe Dashboard to delete duplicate webhooks. Multiple webhooks can lead to confusing notifications to customers.', 'my-tickets-stripe' ), add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) );
+		}
 	}
 
 	// this key is how the gateway will be referenced in all contexts.
