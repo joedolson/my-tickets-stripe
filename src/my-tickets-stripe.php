@@ -172,12 +172,13 @@ function mt_stripe_settings( $settings, $post ) {
 			$test_webhook = get_option( 'mt_stripe_test_webhook', '' );
 			if ( '' !== $test_webhook && $runsetup ) {
 				$stripe = new \Stripe\StripeClient( $test_secret_key );
-				$stripe->webhookEndpoints->delete( $test_webhook, [] );
+				$stripe->webhookEndpoints->delete( $test_webhook, array() ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 			}
 			$endpoint = \Stripe\WebhookEndpoint::create(
 				array(
 					'url'            => add_query_arg( 'mt_stripe_ipn', 'true', home_url() ),
 					'enabled_events' => array( '*' ),
+					// Translators: Date webhook created.
 					'description'    => sprintf( __( 'My Tickets Test Webhook %s', 'my-tickets-stripe' ), date_i18n( 'Y-m-d H:i:s' ) ),
 				)
 			);
@@ -189,12 +190,13 @@ function mt_stripe_settings( $settings, $post ) {
 			$live_webhook = get_option( 'mt_stripe_live_webhook', '' );
 			if ( '' !== $live_webhook && $runsetup ) {
 				$stripe = new \Stripe\StripeClient( $live_secret_key );
-				$stripe->webhookEndpoints->delete( $live_webhook, [] );
+				$stripe->webhookEndpoints->delete( $live_webhook, array() ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 			}
 			$endpoint = \Stripe\WebhookEndpoint::create(
 				array(
 					'url'            => add_query_arg( 'mt_stripe_ipn', 'true', home_url() ),
 					'enabled_events' => array( '*' ),
+					// Translators: Date webhook created.
 					'description'    => sprintf( __( 'My Tickets Live Webhook %s', 'my-tickets-stripe' ), date_i18n( 'Y-m-d H:i:s' ) ),
 				)
 			);
@@ -283,6 +285,7 @@ function mt_setup_stripe( $gateways ) {
 			}
 		}
 		if ( $count > 1 ) {
+			// Translators: webhook URL.
 			$note .= sprintf( __( 'You currently have multiple live Stripe webhooks pointing to <code>%s</code>. Log-in to your Stripe Dashboard to delete duplicate webhooks. Multiple webhooks can lead to confusing notifications to customers.', 'my-tickets-stripe' ), add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) );
 		}
 		\Stripe\Stripe::setApiKey( $test_secret_key );
@@ -296,6 +299,7 @@ function mt_setup_stripe( $gateways ) {
 			}
 		}
 		if ( $count > 1 ) {
+			// Translators: Webhook URL.
 			$note .= sprintf( __( 'You currently have multiple test Stripe webhooks pointing to <code>%s</code>. Log-in to your Stripe Dashboard to delete duplicate webhooks. Multiple webhooks can lead to confusing notifications to customers.', 'my-tickets-stripe' ), add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) );
 		}
 		if ( '' === $note ) {
