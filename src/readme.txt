@@ -28,6 +28,10 @@ New or updated translations are always appreciated. The translation files are in
 = 1.3.0 =
 
 * Change main plug-in file name. Update will require re-activation.
+* Avoid throwing a PHP error if payment ID is missing.
+* Update Stripe PHP class to 7.75.0
+* If webhooks are updated, old webhook will be deleted.
+* Add check to see whether there are multiple webhooks configured for the My Tickets Stripe endpoint.
 
 = 1.2.10 =
 
@@ -157,4 +161,4 @@ Brand new plug-in - nothing asked yet!
 
 == Upgrade Notice ==
 
-* Following this update, you will need to re-activate the plug-in, due to a filename change.
+* Following this update, you will need to re-activate the plug-in, due to a key filename change.
