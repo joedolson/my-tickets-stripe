@@ -311,7 +311,7 @@ function mt_setup_stripe( $gateways ) {
 		$note = sprintf( __( 'You need to add <code>%s</code> as a Webhook URL in your Stripe account at Stripe > Dashboard > Settings > Webhooks. My Tickets: Stripe will attempt to configure your webhook automatically when you save your Stripe API keys.', 'my-tickets-stripe' ), add_query_arg( 'mt_stripe_ipn', 'true', home_url() ) );
 	}
 
-	if ( $live_secret_key && isset( $stripe_options['test_mode'] ) && 'true' !== $stripe_options['test_mode']  ) {
+	if ( $live_secret_key && isset( $stripe_options['test_mode'] ) && 'true' !== $stripe_options['test_mode'] ) {
 		\Stripe\Stripe::setApiKey( $live_secret_key );
 		$endpoints = \Stripe\WebhookEndpoint::all( array( 'limit' => 16 ) );
 		$count     = 0;
