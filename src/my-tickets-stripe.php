@@ -169,11 +169,16 @@ function mt_stripe_settings( $settings, $post ) {
 
 		if ( $test_secret_key || $runsetup ) {
 			\Stripe\Stripe::setApiKey( $test_secret_key );
-
+			$test_webhook = get_option( 'mt_stripe_test_webhook', '' );
+			if ( '' !== $test_webhook && $runsetup ) {
+				$stripe = new \Stripe\StripeClient( $test_secret_key );
+				$stripe->webhookEndpoints->delete( $test_webhook, [] );
+			}
 			$endpoint = \Stripe\WebhookEndpoint::create(
 				array(
 					'url'            => add_query_arg( 'mt_stripe_ipn', 'true', home_url() ),
 					'enabled_events' => array( '*' ),
+					'description'    => sprintf( __( 'My Tickets Test Webhook %s', 'my-tickets-stripe' ), date_i18n( 'Y-m-d H:i:s' ) ),
 				)
 			);
 			update_option( 'mt_stripe_test_webhook', $endpoint->id );
@@ -181,11 +186,16 @@ function mt_stripe_settings( $settings, $post ) {
 
 		if ( $live_secret_key || $runsetup ) {
 			\Stripe\Stripe::setApiKey( $live_secret_key );
-
+			$live_webhook = get_option( 'mt_stripe_live_webhook', '' );
+			if ( '' !== $live_webhook && $runsetup ) {
+				$stripe = new \Stripe\StripeClient( $live_secret_key );
+				$stripe->webhookEndpoints->delete( $live_webhook, [] );
+			}
 			$endpoint = \Stripe\WebhookEndpoint::create(
 				array(
 					'url'            => add_query_arg( 'mt_stripe_ipn', 'true', home_url() ),
 					'enabled_events' => array( '*' ),
+					'description'    => sprintf( __( 'My Tickets Live Webhook %s', 'my-tickets-stripe' ), date_i18n( 'Y-m-d H:i:s' ) ),
 				)
 			);
 
