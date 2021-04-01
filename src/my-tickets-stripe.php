@@ -559,11 +559,8 @@ function mt_stripe_form( $url, $payment_id, $total, $args, $method = 'stripe' ) 
 
 	$form = '<form id="mt-payment-form" action="/charge" method="post">
 	<div class="mt-stripe-hidden-fields">
-		<input type="hidden" name="_wp_stripe_nonce" value="' . esc_attr( $nonce ) . '" />
-		<input type="hidden" name="_mt_action" value="' . esc_attr( $method ) . '" />
-		<input type="hidden" name="_mt_secret" id="mt_client_secret" value="' . $intent->client_secret . '" />
 		<input type="hidden" name="payment_id" id="mt-payment-id" value="' . esc_attr( $payment_id ) . '" />
-		<input type="hidden" name="amount" value="' . esc_attr( $total ) . '" />
+		<input type="hidden" name="_mt_secret" id="mt_client_secret" value="' . $intent->client_secret . '" />
 	</div>
 	<div class="stripe">';
 	// Hidden form fields.
