@@ -100,18 +100,19 @@ function mt_stripe_ipn() {
 						$sitename = get_bloginfo( 'name' );
 						wp_mail( $details['email'], sprintf( __( 'Partial Refund from %s', 'my-tickets-stripe' ), $sitename ), $body );
 						status_header( 200 );
-					}
-					if ( ! ( 'Refunded' === $status ) ) {
-						update_post_meta( $payment_id, '_is_paid', 'Refunded' );
-						$details = array(
-							'id'    => $payment_id,
-							'name'  => get_the_title( $payment_id ),
-							'email' => get_post_meta( $payment_id, '_email', true ),
-						);
-						mt_send_notifications( 'Refunded', $details );
-						status_header( 200 );
 					} else {
-						status_header( 202 );
+						if ( ! ( 'Refunded' === $status ) ) {
+							update_post_meta( $payment_id, '_is_paid', 'Refunded' );
+							$details = array(
+								'id'    => $payment_id,
+								'name'  => get_the_title( $payment_id ),
+								'email' => get_post_meta( $payment_id, '_email', true ),
+							);
+							mt_send_notifications( 'Refunded', $details );
+							status_header( 200 );
+						} else {
+							status_header( 202 );
+						}
 					}
 					die;
 					break;
