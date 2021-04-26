@@ -89,12 +89,18 @@ function mt_stripe_ipn() {
 					$status  = get_post_meta( $payment_id, '_is_paid', true );
 					$partial = ( $object->refunded ) ? false : true;
 					if ( $partial ) {
+						$applied = get_transient( 'mt_stripe_' . $payment_id );
+						if ( 'refund_applied' === $applied ) {
+							status_header( 202 );
+							die;
+						}
+						set_transient( 'mt_stripe_' . $payment_id, 'refund_applied', 10 );
 						$amount   = ( mt_zerodecimal_currency() ) ? $object->amount_refunded : $object->amount_refunded / 100;
 						$details  = array(
 							'id'     => $payment_id,
 							'name'   => get_the_title( $payment_id ),
 							'email'  => get_post_meta( $payment_id, '_email', true ),
-							'amount' => apply_filters( 'mt_money_format', $amount ),
+							'amount' => strip_tags( mt_money_format( $amount ) ),
 						);
 						$template = apply_filters( 'mt_stripe_partial_refund_email', __( 'A partial refund on your purchase has been administered. The refund should appear on your credit card statement within 5-10 days. Refunded amount: {amount}.', 'my-tickets-stripe' ) );
 						$body     = mt_draw_template( $details, $template );
