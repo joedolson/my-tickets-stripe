@@ -555,6 +555,18 @@ function mt_stripe_form( $url, $payment_id, $total, $args, $method = 'stripe' ) 
 		update_post_meta( $payment_id, '_mt_payment_intent_id', $intent->id );
 	} else {
 		$intent = \Stripe\PaymentIntent::retrieve( $intent_id );
+		$amount = $intent->amount;
+		$desc   = $intent->description;
+		// $amount is int; $total is float.
+		if ( ! ( $amount === (int) $total && $desc === $description ) ) {
+			$intent = \Stripe\PaymentIntent::update(
+				$intent_id,
+				array(
+					'amount'      => $total,
+					'description' => $description,
+				)
+			);
+		}
 	}
 
 	$form = '<form id="mt-payment-form" action="/charge" method="post">
