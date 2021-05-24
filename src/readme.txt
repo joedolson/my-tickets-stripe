@@ -5,7 +5,7 @@ Tags: my-tickets, stripe
 Requires at least: 4.4
 Tested up to: 5.7
 Requires PHP: 5.6
-Stable tag: 1.3.1
+Stable tag: 1.3.2
 
 Support for Stripe in My Tickets.
 
@@ -24,6 +24,10 @@ New or updated translations are always appreciated. The translation files are in
 3. Go to My Tickets > Payment Settings and configure the Stripe payment gateway.
 
 == Changelog ==
+
+= 1.3.2 =
+
+* Bug fix: Cart did not refresh the Stripe payment intent correctly if user left mid-purchase & updated cart values.
 
 = 1.3.1 =
 
