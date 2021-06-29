@@ -117,7 +117,7 @@ function mt_stripe_currencies( $currencies ) {
 	$options     = array_merge( $defaults, $options );
 	$mt_gateways = $options['mt_gateway'];
 
-	if ( is_array( $mt_gateways ) && in_array( 'authorizenet', $mt_gateways, true ) ) {
+	if ( is_array( $mt_gateways ) && in_array( 'stripe', $mt_gateways, true ) ) {
 		$stripe = mt_stripe_supported();
 		$return = array();
 		foreach ( $stripe as $currency ) {
